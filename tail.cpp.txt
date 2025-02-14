@@ -1,7 +1,0 @@
-#include <iostream>
-#include <vector>
-#include <cstdlib>
-#include <ctime>
-
-struct Member {
-    std::string name;
