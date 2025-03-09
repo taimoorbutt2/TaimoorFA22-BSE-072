@@ -7,4 +7,6 @@ Output:
 ![s4](https://github.com/user-attachments/assets/b57974b7-8acb-4c5b-b139-80e5c1dff6a6)
 ![s5](https://github.com/user-attachments/assets/6b7bc4f3-e582-4876-a4a4-e37fb85b5a3c)
 ![s6](https://github.com/user-attachments/assets/0d561d10-4ce1-4609-bd57-19f08e5248b4)
-[flashcardProject-2.zip](https://github.com/user-attachments/files/19148369/flashcardProject-2.zip)
+Output Video On youtube:
+click the below link to see the Output:
+https://youtu.be/_VlQV7xWhG8?feature=shared
