@@ -85,25 +85,25 @@ class _ResultScreenState extends State<ResultScreen> {
         : 'The best way to lose weight if you are overweight is through a combination of diet and exercise.';
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('BMI Calculator',
-              style: TextStyle(color: Colors.cyanAccent)),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+      appBar: AppBar(
+        title: const Text('BMI Calculator',
+            style: TextStyle(color: Colors.cyanAccent)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.black, Colors.grey],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.black, Colors.grey],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                const Text(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const Text(
                 'Your Result',
                 style: TextStyle(
                   fontSize: 30,
@@ -156,8 +156,7 @@ class _ResultScreenState extends State<ResultScreen> {
                             child: Container(color: Colors.blue),
                           ),
                           Expanded(
-                            flex:
-                            ((widget.bmi.clamp(18.5, 25) - 18.5) / 40 * 100)
+                            flex: ((widget.bmi.clamp(18.5, 25) - 18.5) / 40 * 100)
                                 .toInt(),
                             child: Container(color: Colors.green),
                           ),
@@ -229,90 +228,90 @@ class _ResultScreenState extends State<ResultScreen> {
               ElevatedButton(
                 onPressed: _showResetDialogBox,
                 style: ElevatedButton.styleFrom(
-                    minimum -----: const Size(double.infinity, 60),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  minimumSize: const Size(double.infinity, 60),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  backgroundColor: Colors.cyanAccent,
+                  foregroundColor: Colors.black,
                 ),
-                backgroundColor: Colors.cyanAccent,
-                foregroundColor: Colors.black,
-              ),
-              child: const Text(
-                'RE-CALCULATE YOUR BMI',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                child: const Text(
+                  'RE-CALCULATE YOUR BMI',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            if (_showResetDialog)
-        Center(
-    child: Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-    color: Colors.grey[900],
-    borderRadius: BorderRadius.circular(20),
-    border: Border.all(color: Colors.cyanAccent, width: 2),
-    ),
-    child: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-    const Text(
-    'Would you reset your BMI data?',
-    style: TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    color: Colors.cyanAccent,
-    ),
-    ),
-    const SizedBox(height: 20),
-    Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: [
-    ElevatedButton(
-    onPressed: _resetData,
-    style: ElevatedButton.styleFrom(
-    shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(20),
-    ),
-    backgroundColor: Colors.cyanAccent,
-    foregroundColor: Colors.black,
-    ),
-    child: const Text('Yes'),
-    ),
-    ElevatedButton(
-    onPressed: () =>
-    setState(() => _showResetDialog = false),
-    style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.grey[800],
-    foregroundColor: Colors.cyanAccent,
-    shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(20),
-    ),
-    ),
-    child: const Text('No'),
-    ),
-    ],
-    ),
-    const SizedBox(height: 20),
-    TextButton(
-    onPressed: () {},
-    child: const Text(
-    'For tips on maintaining a healthy weight check out the food and diet fitness',
-    style: TextStyle(
-    color: Colors.cyanAccent,
-    fontWeight: FontWeight.bold,
-    ),
-    textAlign: TextAlign.center,
-    ),
-    ),
-    ],
-    ),
-    ),
-    ),
-    ],
-    ),
-    ),
-    ),
+              if (_showResetDialog)
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900],
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.cyanAccent, width: 2),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Would you reset your BMI data?',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.cyanAccent,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ElevatedButton(
+                              onPressed: _resetData,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                backgroundColor: Colors.cyanAccent,
+                                foregroundColor: Colors.black,
+                              ),
+                              child: const Text('Yes'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  setState(() => _showResetDialog = false),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                foregroundColor: Colors.cyanAccent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: const Text('No'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'For tips on maintaining a healthy weight check out the food and diet fitness',
+                            style: TextStyle(
+                              color: Colors.cyanAccent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
