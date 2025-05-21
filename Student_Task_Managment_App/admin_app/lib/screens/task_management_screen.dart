@@ -113,7 +113,7 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Manage Tasks')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B00FF)))
           : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -135,6 +135,7 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
                         labelText: 'Task Title',
                         hintText: 'Enter task title',
                       ),
+                      style: const TextStyle(color: Colors.white),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter a title';
@@ -149,16 +150,21 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
                         labelText: 'Description',
                         hintText: 'Enter task description',
                       ),
+                      style: const TextStyle(color: Colors.white),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _selectedStudentId,
                       hint: const Text('Select Student'),
+                      style: const TextStyle(color: Colors.white),
                       items: _students
                           .map((student) => DropdownMenuItem(
                         value: student.id,
-                        child: Text(student.name),
+                        child: Text(
+                          student.name,
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ))
                           .toList(),
                       onChanged: (value) {
@@ -180,6 +186,7 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
                         labelText: 'Due Date',
                         hintText: 'Select due date',
                       ),
+                      style: const TextStyle(color: Colors.white),
                       readOnly: true,
                       onTap: () => _selectDate(context),
                       validator: (value) {

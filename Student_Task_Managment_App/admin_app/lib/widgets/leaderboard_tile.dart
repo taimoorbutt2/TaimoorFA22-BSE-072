@@ -22,7 +22,7 @@ class LeaderboardTile extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.accent,
+          backgroundColor: AppColors.accent, // Neon Coral
           child: Text(
             '$rank',
             style: const TextStyle(color: Colors.white),

@@ -23,6 +23,13 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   void initState() {
     super.initState();
     _fetchTasks();
+    debugPrint('PerformanceScreen: Current user: ${Supabase.instance.client.auth.currentUser?.id}');
+    _supabaseService.subscribeToTasks(widget.studentId, (updatedTasks) {
+      setState(() {
+        _tasks = updatedTasks;
+        debugPrint('PerformanceScreen: Updated tasks to ${updatedTasks.length}');
+      });
+    });
   }
 
   Future<void> _fetchTasks() async {
@@ -34,31 +41,33 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       setState(() {
         _tasks = tasks;
         _isLoading = false;
+        debugPrint('PerformanceScreen: Fetched ${tasks.length} tasks');
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error fetching tasks: $e')),
       );
       setState(() {
         _isLoading = false;
       });
+      debugPrint('PerformanceScreen: Error fetching tasks: $e');
     }
   }
 
-  int get _streak {
-    int streak = 0;
-    final sortedTasks = _tasks.where((task) => task.status == 'completed').toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  int _calculateStreak() {
     final today = DateTime.now();
-    for (var task in sortedTasks) {
-      if (task.createdAt.day == today.day &&
-          task.createdAt.month == today.month &&
-          task.createdAt.year == today.year) {
+    final completedTasks = _tasks.where((task) => task.status == 'completed').toList();
+    int streak = 0;
+    for (var task in completedTasks) {
+      final completionDate = task.completed_at ?? task.dueDate;
+      if (completionDate != null &&
+          completionDate.year == today.year &&
+          completionDate.month == today.month &&
+          completionDate.day == today.day) {
         streak++;
-      } else {
-        break;
       }
     }
+    debugPrint('PerformanceScreen: Calculated streak: $streak');
     return streak;
   }
 
@@ -67,6 +76,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     final completed = _tasks.where((task) => task.status == 'completed').length;
     final total = _tasks.length;
     final progress = total > 0 ? completed / total : 0.0;
+    final streak = _calculateStreak();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Performance')),
@@ -111,7 +121,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 16),
-                      StreakIndicator(streak: _streak),
+                      StreakIndicator(streak: streak),
                     ],
                   ),
                 ),

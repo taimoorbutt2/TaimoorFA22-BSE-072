@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../models/task.dart';
 import '../services/supabase_service.dart';
+import '../utils/task_completion_handler.dart';
 import '../widgets/task_card.dart';
 import '../utils/constants.dart';
 
@@ -16,19 +17,23 @@ class TaskCalendarScreen extends StatefulWidget {
 
 class _TaskCalendarScreenState extends State<TaskCalendarScreen> {
   final SupabaseService _supabaseService = SupabaseService();
+  final TaskCompletionHandler _completionHandler = TaskCompletionHandler();
   List<Task> _tasks = [];
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isLoading = true;
+  bool _showCompleted = false;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
     _fetchTasks();
-    _supabaseService.subscribeToTasks((updatedTasks) {
+    debugPrint('TaskCalendarScreen: Student ID: ${widget.studentId}');
+    _supabaseService.subscribeToTasks(widget.studentId, (updatedTasks) {
       setState(() {
-        _tasks = updatedTasks.where((task) => task.assignedTo == widget.studentId).toList();
+        _tasks = updatedTasks;
+        debugPrint('TaskCalendarScreen: Updated tasks to ${updatedTasks.length}');
       });
     });
   }
@@ -42,14 +47,16 @@ class _TaskCalendarScreenState extends State<TaskCalendarScreen> {
       setState(() {
         _tasks = tasks;
         _isLoading = false;
+        debugPrint('TaskCalendarScreen: Fetched ${tasks.length} tasks');
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error fetching tasks: $e')),
       );
       setState(() {
         _isLoading = false;
       });
+      debugPrint('TaskCalendarScreen: Error fetching tasks: $e');
     }
   }
 
@@ -59,7 +66,8 @@ class _TaskCalendarScreenState extends State<TaskCalendarScreen> {
       return dueDate != null &&
           dueDate.year == day.year &&
           dueDate.month == day.month &&
-          dueDate.day == day.day;
+          dueDate.day == day.day &&
+          (_showCompleted || task.status == 'pending');
     }).toList();
   }
 
@@ -98,7 +106,23 @@ class _TaskCalendarScreenState extends State<TaskCalendarScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Show Completed Tasks', style: TextStyle(fontSize: 16)),
+                Switch(
+                  value: _showCompleted,
+                  onChanged: (value) {
+                    setState(() {
+                      _showCompleted = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: _getTasksForDay(_selectedDay!).isEmpty
                 ? const Center(child: Text('No tasks for this day'))
@@ -110,20 +134,21 @@ class _TaskCalendarScreenState extends State<TaskCalendarScreen> {
                   task: task,
                   onComplete: task.status == 'pending'
                       ? () async {
-                    try {
-                      await Supabase.instance.client
-                          .from('tasks')
-                          .update({'status': 'completed'})
-                          .eq('id', task.id);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Task marked as completed')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
-                      );
-                    }
+                    await _completionHandler.markTaskComplete(
+                      task: task,
+                      studentId: widget.studentId,
+                      onSuccess: () async {
+                        await _fetchTasks();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Task marked as completed')),
+                        );
+                      },
+                      onError: (error) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to mark task: $error')),
+                        );
+                      },
+                    );
                   }
                       : null,
                 );

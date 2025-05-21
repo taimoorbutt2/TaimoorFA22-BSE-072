@@ -66,56 +66,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B00FF)))
           : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset('assets/images/admin_dashboard.png', height: 150),
+              Image.asset('assets/images/admin_dashboard.jpg', height: 310),
               const SizedBox(height: 20),
               Text(
                 'Overview',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatCard(
-                    context,
-                    title: 'Total Students',
-                    value: _stats['total_students'].toString(),
-                    icon: Icons.people,
-                  ),
-                  _buildStatCard(
-                    context,
-                    title: 'Tasks Today',
-                    value: _stats['tasks_today'].toString(),
-                    icon: Icons.task,
-                  ),
-                ],
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildStatCard(
+                      context,
+                      title: 'Total Students',
+                      value: _stats['total_students'].toString(),
+                      icon: Icons.people,
+                    ),
+                    _buildStatCard(
+                      context,
+                      title: 'Tasks Today',
+                      value: _stats['tasks_today'].toString(),
+                      icon: Icons.task,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatCard(
-                    context,
-                    title: 'Pending Tasks',
-                    color: Colors.red,
-                    value: _stats['pending_tasks'].toString(),
-                    icon: Icons.pending,
-                  ),
-                  _buildStatCard(
-                    context,
-                    title: 'Completed Tasks',
-                    color: Colors.green,
-                    value: _stats['completed_tasks'].toString(),
-                    icon: Icons.check_circle,
-                  ),
-                ],
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildStatCard(
+                      context,
+                      title: 'Pending Tasks',
+                      color: const Color(0xFFFF2E63),
+                      value: _stats['pending_tasks'].toString(),
+                      icon: Icons.pending,
+                    ),
+                    _buildStatCard(
+                      context,
+                      title: 'Completed Tasks',
+                      color: Colors.green,
+                      value: _stats['completed_tasks'].toString(),
+                      icon: Icons.check_circle,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
               Text(
@@ -123,43 +127,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildActionButton(
-                    context,
-                    label: 'Manage Students',
-                    icon: Icons.people,
-                    onTap: () => Navigator.push(
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildActionButton(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const StudentManagementScreen(),
+                      label: 'Manage Students',
+                      icon: Icons.people,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const StudentManagementScreen(),
+                        ),
                       ),
                     ),
-                  ),
-                  _buildActionButton(
-                    context,
-                    label: 'Manage Tasks',
-                    icon: Icons.task,
-                    onTap: () => Navigator.push(
+                    _buildActionButton(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const TaskManagementScreen(),
+                      label: 'Manage Tasks',
+                      icon: Icons.task,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TaskManagementScreen(),
+                        ),
                       ),
                     ),
-                  ),
-                  _buildActionButton(
-                    context,
-                    label: 'Analytics',
-                    icon: Icons.bar_chart,
-                    onTap: () => Navigator.push(
+                    _buildActionButton(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const AnalyticsScreen(),
+                      label: 'Analytics',
+                      icon: Icons.bar_chart,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AnalyticsScreen(),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -169,23 +175,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatCard(BuildContext context,
-      {required String title, required String value, required IconData icon, Color? color}) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, size: 40, color: color ?? AppColors.primary),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
+      {required String title,
+        required String value,
+        required IconData icon,
+        Color? color}) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 12),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(icon, size: 40, color: color ?? AppColors.primary),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -193,20 +206,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildActionButton(BuildContext context,
       {required String label, required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Icon(icon, size: 40, color: AppColors.primary),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Icon(icon, size: 40, color: AppColors.primary),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),

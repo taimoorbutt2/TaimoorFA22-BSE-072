@@ -47,7 +47,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Analytics')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B00FF))) // Neon Indigo
           : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),

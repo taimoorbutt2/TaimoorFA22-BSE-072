@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/user.dart';
 import '../utils/constants.dart';
 
@@ -38,7 +39,7 @@ class StudentCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  icon: const Icon(Icons.edit, color: Color(0xFF3B00FF)),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -66,8 +67,17 @@ class StudentCard extends StatelessWidget {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: Color(0xFFFF2E63)),
                   onPressed: onDelete,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy, color: Color(0xFF3B00FF)),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: student.id));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Student ID copied to clipboard')),
+                    );
+                  },
                 ),
               ],
             ),

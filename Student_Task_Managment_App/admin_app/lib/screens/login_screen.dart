@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/logo.png', height: 100),
+                Image.asset('assets/images/logo.jpg', height: 100),
                 const SizedBox(height: 20),
                 Text(
                   'Admin Login',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/task.dart';
 import '../services/supabase_service.dart';
+import '../utils/task_completion_handler.dart';
 import '../widgets/task_card.dart';
 import '../utils/constants.dart';
 
@@ -15,17 +16,20 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen> {
   final SupabaseService _supabaseService = SupabaseService();
+  final TaskCompletionHandler _completionHandler = TaskCompletionHandler();
   List<Task> _tasks = [];
-  String _filter = 'all';
+  bool _showCompleted = false;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _fetchTasks();
-    _supabaseService.subscribeToTasks((updatedTasks) {
+    debugPrint('TaskListScreen: Student ID: ${widget.studentId}');
+    _supabaseService.subscribeToTasks(widget.studentId, (updatedTasks) {
       setState(() {
-        _tasks = updatedTasks.where((task) => task.assignedTo == widget.studentId).toList();
+        _tasks = updatedTasks;
+        debugPrint('TaskListScreen: Updated tasks to ${updatedTasks.length}');
       });
     });
   }
@@ -39,40 +43,39 @@ class _TaskListScreenState extends State<TaskListScreen> {
       setState(() {
         _tasks = tasks;
         _isLoading = false;
+        debugPrint('TaskListScreen: Fetched ${tasks.length} tasks');
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error fetching tasks: $e')),
       );
       setState(() {
         _isLoading = false;
       });
+      debugPrint('TaskListScreen: Error fetching tasks: $e');
     }
   }
 
   Future<void> _markTaskComplete(Task task) async {
-    try {
-      await Supabase.instance.client
-          .from('tasks')
-          .update({'status': 'completed'})
-          .eq('id', task.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task marked as completed')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
+    await _completionHandler.markTaskComplete(
+      task: task,
+      studentId: widget.studentId,
+      onSuccess: () async {
+        await _fetchTasks();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Task marked as completed')),
+        );
+      },
+      onError: (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to mark task: $error')),
+        );
+      },
+    );
   }
 
   List<Task> get _filteredTasks {
-    if (_filter == 'pending') {
-      return _tasks.where((task) => task.status == 'pending').toList();
-    } else if (_filter == 'completed') {
-      return _tasks.where((task) => task.status == 'completed').toList();
-    }
-    return _tasks;
+    return _tasks.where((task) => _showCompleted || task.status == 'pending').toList();
   }
 
   @override
@@ -83,18 +86,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: DropdownButton<String>(
-              value: _filter,
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Tasks')),
-                DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                DropdownMenuItem(value: 'completed', child: Text('Completed')),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Show Completed Tasks', style: TextStyle(fontSize: 16)),
+                Switch(
+                  value: _showCompleted,
+                  onChanged: (value) {
+                    setState(() {
+                      _showCompleted = value;
+                    });
+                  },
+                ),
               ],
-              onChanged: (value) {
-                setState(() {
-                  _filter = value!;
-                });
-              },
             ),
           ),
           Expanded(

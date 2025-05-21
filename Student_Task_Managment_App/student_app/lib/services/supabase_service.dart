@@ -119,21 +119,43 @@ class SupabaseService {
     }
   }
 
-  void subscribeToTasks(Function(List<Task>) onUpdate) {
+  void subscribeToTasks(String studentId, Function(List<Task>) onUpdate) {
     try {
-      final channel = _client.channel('public:tasks');
+      final channel = _client.channel('public:tasks:student_$studentId');
 
       channel
           .onPostgresChanges(
         event: PostgresChangeEvent.all,
         schema: 'public',
         table: 'tasks',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'assigned_to',
+          value: studentId,
+        ),
         callback: (PostgresChangePayload payload) {
-          debugPrint('Received task update: ${payload.newRecord}');
-          getTasks().then(onUpdate);
+          debugPrint('Task update for student $studentId: ${payload.eventType} ${payload.newRecord}');
+          getTasksForStudent(studentId).then((tasks) {
+            debugPrint('Fetched ${tasks.length} tasks for student $studentId on update');
+            onUpdate(tasks);
+          }).catchError((e) {
+            debugPrint('Error fetching tasks on update: $e');
+          });
         },
       )
-          .subscribe();
+          .subscribe((status, [error]) {
+        if (status == 'SUBSCRIBED') {
+          debugPrint('Subscribed to tasks for student $studentId');
+          // Fetch tasks immediately upon subscription
+          getTasksForStudent(studentId).then(onUpdate).catchError((e) {
+            debugPrint('Error on initial fetch: $e');
+          });
+        } else if (status == 'CLOSED') {
+          debugPrint('Subscription closed for student $studentId');
+        } else if (error != null) {
+          debugPrint('Subscription error for student $studentId: $error');
+        }
+      });
     } catch (e) {
       debugPrint('Error subscribing to tasks: $e');
       throw Exception('Failed to subscribe to tasks: $e');

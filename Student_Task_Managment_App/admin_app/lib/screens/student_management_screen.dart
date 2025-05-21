@@ -101,6 +101,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
                         labelText: 'Student Name',
                         hintText: 'Enter student name',
                       ),
+                      style: const TextStyle(color: Colors.white),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter a name';
@@ -130,7 +131,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B00FF)))
                 : _students.isEmpty
                 ? const Center(child: Text('No students available'))
                 : ListView.builder(

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Colors.indigo;
-  static const accent = Colors.amber;
-  static const background = Color(0xFFF1F5F9); // Light gray
-  static const border = Color(0xFFD1D5DB); // Gray border
-  static const inputBackground = Color(0xFFEFF3F6); // Light input background
+  static const primary = Color(0xFF3B00FF); // Neon Indigo
+  static const accent = Color(0xFFFF2E63); // Neon Coral
+  static const background = Color(0xFF1A1A2E); // Dark Neon Gray
+  static const border = Color(0xFF4A4E69); // Neon Gray
+  static const inputBackground = Color(0xFF4A4E69); // Neon Gray
 }
 
 class AppStrings {
-  static const appName = 'Student Task Tracker - Admin';
+  static const appName = ' Admin App ';
   static const dashboardTitle = 'Admin Dashboard';
 }

@@ -32,30 +32,31 @@ class MyApp extends StatelessWidget {
         title: 'Student Task Tracker - Admin',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primarySwatch: Colors.indigo,
-          scaffoldBackgroundColor: Colors.grey[100],
+          primaryColor: const Color(0xFF3B00FF), // Neon Indigo
+          scaffoldBackgroundColor: const Color(0xFF1A1A2E), // Dark Neon Gray
           colorScheme: ColorScheme.fromSwatch(
             primarySwatch: Colors.indigo,
-            accentColor: Colors.amber,
-            backgroundColor: Colors.grey[100],
+            accentColor: const Color(0xFFFF2E63), // Neon Coral
+            backgroundColor: const Color(0xFF1A1A2E),
           ).copyWith(
-            surface: Colors.white,
-            onSurface: Colors.black87,
+            surface: Colors.white.withOpacity(0.1), // Frosted Neon White
+            onSurface: Colors.white70,
           ),
           textTheme: GoogleFonts.poppinsTextTheme(
             Theme.of(context).textTheme.copyWith(
               headlineSmall: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Colors.white70,
               ),
               bodyMedium: GoogleFonts.poppins(
                 fontSize: 14,
-                color: Colors.black54,
+                color: Colors.white60,
               ),
               titleLarge: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
+                color: Colors.white70,
               ),
             ),
           ),
@@ -64,11 +65,12 @@ class MyApp extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             clipBehavior: Clip.antiAlias,
+            color: Colors.white.withOpacity(0.1), // Frosted Neon White
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Colors.indigo,
+              backgroundColor: const Color(0xFF3B00FF), // Neon Indigo
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               elevation: 2,
@@ -77,32 +79,32 @@ class MyApp extends StatelessWidget {
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[400]!),
+              borderSide: const BorderSide(color: Color(0xFF4A4E69)), // Neon Gray
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[400]!),
+              borderSide: const BorderSide(color: Color(0xFF4A4E69)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.indigo, width: 2),
+              borderSide: const BorderSide(color: Color(0xFF3B00FF), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
+              borderSide: const BorderSide(color: Color(0xFFFF2E63), width: 2),
             ),
             filled: true,
-            fillColor: Colors.grey[50],
+            fillColor: const Color(0xFF4A4E69), // Neon Gray
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
           appBarTheme: const AppBarTheme(
             elevation: 0,
             backgroundColor: Colors.transparent,
-            foregroundColor: Colors.black87,
+            foregroundColor: Colors.white70,
             titleTextStyle: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Colors.white70,
             ),
           ),
         ),

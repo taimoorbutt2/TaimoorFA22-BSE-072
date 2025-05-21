@@ -40,7 +40,7 @@ class TaskCard extends StatelessWidget {
             Text(
               'Status: ${task.status}',
               style: TextStyle(
-                color: task.status == 'completed' ? Colors.green : Colors.red,
+                color: task.status == 'completed' ? Colors.green : const Color(0xFFFF2E63), // Neon Coral
                 fontWeight: FontWeight.w500,
               ),
             ),

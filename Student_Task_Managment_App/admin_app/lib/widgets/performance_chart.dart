@@ -23,7 +23,7 @@ class PerformanceChart extends StatelessWidget {
               barRods: [
                 BarChartRodData(
                   toY: data['performance_score'].toDouble(),
-                  color: AppColors.primary,
+                  color: AppColors.primary, // Neon Indigo
                   width: 20,
                 ),
               ],
@@ -38,7 +38,7 @@ class PerformanceChart extends StatelessWidget {
                   if (index < performance.length) {
                     return Text(
                       performance[index]['name'].split(' ').first,
-                      style: const TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 12, color: Colors.white70),
                     );
                   }
                   return const Text('');
@@ -52,7 +52,7 @@ class PerformanceChart extends StatelessWidget {
                 getTitlesWidget: (value, meta) {
                   return Text(
                     '${value.toInt()}%',
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   );
                 },
               ),
