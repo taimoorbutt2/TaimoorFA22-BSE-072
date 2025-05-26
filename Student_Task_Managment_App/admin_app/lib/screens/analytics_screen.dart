@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
 import '../services/supabase_service.dart';
 import '../widgets/performance_chart.dart';
 import '../widgets/leaderboard_tile.dart';
@@ -28,15 +30,53 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     });
     try {
       final performance = await _supabaseService.getStudentPerformance();
+      // Convert and validate data
+      final convertedPerformance = performance.map((data) {
+        // Handle numeric fields with null checks and type conversion
+        final score = data['performance_score'];
+        final completed = data['completed_tasks'];
+        final total = data['total_tasks'];
+        final name = data['name'];
+
+        // Convert score to double, default to 0.0 if null or invalid
+        final double performanceScore = (score is num
+            ? score.toDouble()
+            : score is String
+            ? double.tryParse(score) ?? 0.0
+            : 0.0);
+        // Convert completed_tasks and total_tasks to int, default to 0 if null or invalid
+        final int completedTasks = (completed is num
+            ? completed.toInt()
+            : completed is String
+            ? int.tryParse(completed) ?? 0
+            : 0);
+        final int totalTasks = (total is num
+            ? total.toInt()
+            : total is String
+            ? int.tryParse(total) ?? 0
+            : 0);
+        // Ensure name is String, default to "Unknown"
+        final String studentName = (name is String && name.isNotEmpty) ? name : 'Unknown';
+
+        return {
+          'name': studentName,
+          'performance_score': performanceScore,
+          'completed_tasks': completedTasks,
+          'total_tasks': totalTasks,
+        };
+      }).toList();
+
       setState(() {
-        _performance = performance;
+        _performance = convertedPerformance;
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('Error fetching performance: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
       setState(() {
+        _performance = [];
         _isLoading = false;
       });
     }
@@ -79,6 +119,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 itemCount: _performance.length,
                 itemBuilder: (context, index) {
                   final data = _performance[index];
+                  // Defensive check for required fields
+                  if (data['name'] == null ||
+                      data['performance_score'] == null ||
+                      data['completed_tasks'] == null ||
+                      data['total_tasks'] == null) {
+                    debugPrint('Invalid data at index $index: $data');
+                    return const SizedBox.shrink();
+                  }
                   return LeaderboardTile(
                     rank: index + 1,
                     name: data['name'],
