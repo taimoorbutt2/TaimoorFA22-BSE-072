@@ -1,30 +1,69 @@
-News Hub 📰
+  ## 🧠 Task_Admin App  
 
-🎉 Features:
+### 📱 App Screenshots
 
-📰 Live News: Fetches fresh articles via NewsAPI.
-📸 Trending Carousel: Auto-playing showcase of top stories.
-🗂️ Categories: Filter by General, Business, Tech, Sports, and more.
-🔍 Search: Find articles with a slick animated search bar.
-🌗 Theme Toggle: Switch between light and dark modes, saved via Hive.
-📴 Offline Reading: Cache articles for offline access.
-🌐 WebView: Read articles in-app or open in browser.
-📱 Responsive UI: Material 3 design for all screens.
 
-🛠️ Tech Stack:
 
-Flutter & Dart 🦋
-Provider for state management
-Hive for caching 📦
-NewsAPI for news data
-Packages: cached_network_image, carousel_slider, webview_flutter, http, url_launcher, flutter_animate ✨
+Manage tasks, students, and performance insights with ease.
 
-📷 Screenshots 
 
-![IMG-20250425-WA0076](https://github.com/user-attachments/assets/312cc2d8-2aec-4c9e-a690-d1c796890c02)
-![IMG-20250425-WA0077](https://github.com/user-attachments/assets/cb81c4e6-eee6-405a-b263-d6085ec48683)
-![IMG-20250425-WA0075](https://github.com/user-attachments/assets/21f8a706-534c-4041-b427-056fbfd795ec)
-![IMG-20250425-WA0078](https://github.com/user-attachments/assets/8236d5b0-0a49-4953-9247-56271a157063)
 
-Video Link :
-https://drive.google.com/drive/folders/1a81Ge4tM2y3u6k81Js3_2iGLTEGiCkjl?usp=sharing
+---
+
+
+
+### 🔧 Admin Interface
+
+
+
+| Loading Screen | Admin Dashboard | Student Management |
+
+|----------------|------------------|---------------------|
+
+| <img src="https://github.com/user-attachments/assets/80ce30ac-1ab5-44f1-a74a-f7a848987024" width="200"/> | <img src="https://github.com/user-attachments/assets/c717fcd8-4dd4-42ee-9724-e843ed924a76" width="200"/> | <img src="https://github.com/user-attachments/assets/34e60509-9995-4a6b-86c8-654e5c6472ca" width="200"/> |
+
+
+
+| Task Management | Performance | - |
+
+|------------------|-------------|---|
+
+| <img src="https://github.com/user-attachments/assets/61d600b2-71a1-4ef3-8e98-9026c1a3b052" width="200"/> | <img src="https://github.com/user-attachments/assets/c781da0a-276b-4ed2-a0cb-fe29cdb3808f" width="200"/> | - |
+
+
+
+---
+
+
+
+## 👨‍🎓 Task_Student App  
+
+### 📱 App Screenshots
+
+
+
+An intuitive student dashboard to stay organized and track progress.
+
+
+
+---
+
+
+
+### 🎓 Student Interface
+
+
+
+| Loading Screen | Login Screen | Task List | Calendar |
+
+|----------------|---------------|-----------|----------|
+
+| <img src="https://github.com/user-attachments/assets/57610013-dd5b-48d5-a7fd-1039c572ed02" width="200"/> | <img src="https://github.com/user-attachments/assets/ed2844ea-3af9-4b40-aade-0d7e047bb1da" width="200"/> | <img src="https://github.com/user-attachments/assets/946656df-1cbc-4e30-a323-efdc090cdac7" width="200"/> | <img src="https://github.com/user-attachments/assets/132947b8-b94a-4b33-b5bc-1f86de8f2160" width="200"/> |
+
+
+
+| Performance | - | - | - |
+
+|-------------|---|---|---|
+
+| <img src="https://github.com/user-attachments/assets/0693ae2f-ec1b-4144-a8e6-d0c2bdc561ce" width="200"/> | - | - | - |
