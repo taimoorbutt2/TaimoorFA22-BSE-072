@@ -1,0 +1,51 @@
+[15-Jun-2025 21:46:18 Europe/Berlin] 
+
+=== Review Submission Start ===
+[15-Jun-2025 21:46:18 Europe/Berlin] Server request method: POST
+[15-Jun-2025 21:46:18 Europe/Berlin] POST data: Array
+(
+    [paper_id] => 29
+    [score] => 99
+    [comments] => a
+    [recommendation] => accept
+)
+
+[15-Jun-2025 21:46:18 Europe/Berlin] Session data: Array
+(
+    [user_id] => 10
+    [role] => reviewer
+    [user_name] => anas
+)
+
+[15-Jun-2025 21:46:18 Europe/Berlin] Connection status: Connected
+[15-Jun-2025 21:46:18 Europe/Berlin] Paper ID from POST: 29
+[15-Jun-2025 21:46:18 Europe/Berlin] Paper ID type: integer
+[15-Jun-2025 21:46:18 Europe/Berlin] Review submission:
+[15-Jun-2025 21:46:18 Europe/Berlin] Paper ID: 29
+[15-Jun-2025 21:46:18 Europe/Berlin] Score: 99
+[15-Jun-2025 21:46:18 Europe/Berlin] Comments: a
+[15-Jun-2025 21:46:18 Europe/Berlin] Recommendation: accept
+[15-Jun-2025 21:46:18 Europe/Berlin] User ID: 10
+[15-Jun-2025 21:46:18 Europe/Berlin] Executing paper check SQL: SELECT p.id, p.status, a.id as assignment_id 
+            FROM papers p 
+            JOIN assignments a ON p.id = a.paper_id 
+            WHERE p.id = ? AND a.reviewer_id = ?
+[15-Jun-2025 21:46:18 Europe/Berlin] Binding params: 29, 10
+[15-Jun-2025 21:46:18 Europe/Berlin] Paper found. Status: under_review
+[15-Jun-2025 21:46:18 Europe/Berlin] Executing review check SQL: SELECT id FROM reviews WHERE paper_id = ? AND reviewer_id = ?
+[15-Jun-2025 21:46:18 Europe/Berlin] Review exists: false
+[15-Jun-2025 21:46:18 Europe/Berlin] Executing SQL: INSERT INTO reviews (paper_id, reviewer_id, score, comments, recommendation) 
+                VALUES (?, ?, ?, ?, ?)
+[15-Jun-2025 21:46:18 Europe/Berlin] Parameters: Array
+(
+    [0] => 29
+    [1] => 10
+    [2] => 99
+    [3] => a
+    [4] => accept
+)
+
+[15-Jun-2025 21:46:18 Europe/Berlin] Parameter types: iisss
+[15-Jun-2025 21:46:18 Europe/Berlin] Insert ID: 23
+[15-Jun-2025 21:46:18 Europe/Berlin] Executing paper status update: UPDATE papers SET status = 'reviewed' WHERE id = ?
+[15-Jun-2025 21:46:18 Europe/Berlin] Review successfully saved. Redirecting to dashboard...
