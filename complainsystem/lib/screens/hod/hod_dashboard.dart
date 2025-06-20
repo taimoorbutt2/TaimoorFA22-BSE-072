@@ -288,38 +288,50 @@ class _HodDashboardState extends State<HodDashboard> {
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: _getStatusColor(complaint.status),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            complaint.status,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
+                                        Flexible(
+                                          flex: 2,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: _getStatusColor(complaint.status),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              complaint.status,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          _formatDate(complaint.createdAt),
-                                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                        Flexible(
+                                          flex: 2,
+                                          child: Text(
+                                            _formatDate(complaint.createdAt),
+                                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                         if (complaint.sameTitleCount > 1) ...[
                                           const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: Text(
-                                              '${complaint.sameTitleCount} similar',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
+                                          Flexible(
+                                            flex: 3,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange,
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                '${complaint.sameTitleCount} similar',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           ),
