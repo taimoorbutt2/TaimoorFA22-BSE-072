@@ -69,28 +69,37 @@ class _ComplaintActionScreenState extends State<ComplaintActionScreen> {
     });
 
     try {
-      // Update complaint status
-      await SupabaseService.updateComplaint(widget.complaint.id, {
-        'status': newStatus,
-        'last_action_at': DateTime.now().toIso8601String(),
-      });
-
-      // Add timeline entry
-      await SupabaseService.addTimelineEntry({
-        'complaint_id': widget.complaint.id,
-        'comment': comment,
-        'status': newStatus,
-        'created_by': SupabaseService.getCurrentUser()!.id,
-      });
-
-      // If escalating, assign HOD
       if (newStatus == 'Escalated') {
-        final hod = await SupabaseService.getHOD();
-        if (hod != null) {
-          await SupabaseService.updateComplaint(widget.complaint.id, {
-            'hod_id': hod.id,
-          });
-        }
+        // Directly assign the provided HOD ID
+        await SupabaseService.updateComplaint(widget.complaint.id, {
+          'status': 'Escalated',
+          'hod_id': '497267c2-eae7-4097-9e91-39d09f6013ea',
+          'last_action_at': DateTime.now().toIso8601String(),
+        });
+        await SupabaseService.addTimelineEntry({
+          'complaint_id': widget.complaint.id,
+          'comment': comment,
+          'status': 'Escalated',
+          'created_by': SupabaseService.getCurrentUser()!.id,
+        });
+        await _loadData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Status updated to Escalated')),
+        );
+        setState(() => _isUpdating = false);
+        return;
+      } else {
+        // Normal status update
+        await SupabaseService.updateComplaint(widget.complaint.id, {
+          'status': newStatus,
+          'last_action_at': DateTime.now().toIso8601String(),
+        });
+        await SupabaseService.addTimelineEntry({
+          'complaint_id': widget.complaint.id,
+          'comment': comment,
+          'status': newStatus,
+          'created_by': SupabaseService.getCurrentUser()!.id,
+        });
       }
 
       await _loadData();

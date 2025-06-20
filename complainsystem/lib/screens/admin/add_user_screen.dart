@@ -4,6 +4,7 @@ import '../../services/supabase_service.dart';
 import '../../services/email_service.dart';
 import '../../models/batch.dart';
 import '../../utils/constants.dart';
+import '../../services/complaint_timeline_service.dart';
 
 class AddUserScreen extends StatefulWidget {
   const AddUserScreen({super.key});

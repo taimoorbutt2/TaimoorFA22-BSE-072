@@ -148,6 +148,35 @@ class SupabaseService {
     }
   }
 
+  static Future<String?> _getOrCreateDefaultBatch() async {
+    try {
+      // Try to get the first available batch
+      final response = await _supabase
+          .from('batches')
+          .select('id')
+          .limit(1)
+          .single();
+      
+      return response['id'];
+    } catch (e) {
+      // If no batches exist, create a default one
+      try {
+        final response = await _supabase
+            .from('batches')
+            .insert({
+              'batch_name': 'FA22',
+              'department_id': await _getDepartmentId(),
+            })
+            .select('id')
+            .single();
+        
+        return response['id'];
+      } catch (e) {
+        return null;
+      }
+    }
+  }
+
   static Future<void> assignAdvisorToBatch(String batchId, String advisorId) async {
     try {
       await _supabase
@@ -256,7 +285,25 @@ class SupabaseService {
       
       return response['id'];
     } catch (e) {
-      throw Exception('Department not found: $e');
+      // If department doesn't exist, create it
+      return await _createDepartment();
+    }
+  }
+
+  static Future<String> _createDepartment() async {
+    try {
+      final response = await _supabase
+          .from('departments')
+          .insert({
+            'name': AppConstants.departmentName,
+            'description': 'Computer Science Department',
+          })
+          .select('id')
+          .single();
+      
+      return response['id'];
+    } catch (e) {
+      throw Exception('Failed to create department: $e');
     }
   }
 
