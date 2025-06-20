@@ -232,9 +232,14 @@ class SupabaseService {
     }
   }
 
-  static Future<void> createComplaint(Map<String, dynamic> complaintData) async {
+  static Future<String?> createComplaint(Map<String, dynamic> complaintData) async {
     try {
-      await _supabase.from('complaints').insert(complaintData);
+      final response = await _supabase
+          .from('complaints')
+          .insert(complaintData)
+          .select('id')
+          .single();
+      return response['id'] as String?;
     } catch (e) {
       throw Exception('Failed to create complaint: $e');
     }

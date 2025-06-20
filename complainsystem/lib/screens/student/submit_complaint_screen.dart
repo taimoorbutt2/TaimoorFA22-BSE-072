@@ -4,6 +4,7 @@ import '../../services/supabase_service.dart';
 import '../../models/user.dart';
 import '../../models/batch.dart';
 import '../../utils/constants.dart';
+import '../../services/complaint_timeline_service.dart';
 
 class SubmitComplaintScreen extends StatefulWidget {
   const SubmitComplaintScreen({super.key});
@@ -74,7 +75,7 @@ class _SubmitComplaintScreenState extends State<SubmitComplaintScreen> {
     }
   }
 
-  void _submitComplaint() async {
+  Future<void> _submitComplaint() async {
     if (!_formKey.currentState!.validate()) return;
     if (_currentUser == null || _userBatch == null) {
       setState(() {
@@ -99,16 +100,25 @@ class _SubmitComplaintScreenState extends State<SubmitComplaintScreen> {
         'status': 'Submitted',
       };
 
-      await SupabaseService.createComplaint(complaintData);
+      // Create the complaint and get its ID
+      final complaintId = await SupabaseService.createComplaint(complaintData);
 
-      // Add timeline entry
-      await SupabaseService.addTimelineEntry({
-        'complaint_id': '', // Will be set by the database trigger
-        'comment': 'Complaint submitted by student',
-        'status': 'Submitted',
-        'created_by': _currentUser!.id,
-      });
+      // Try to add timeline entry, but ignore any errors
+      try {
+        if (complaintId != null && complaintId.isNotEmpty) {
+          await ComplaintTimelineService.addTimelineEntry(
+            complaintId: complaintId,
+            comment: 'Complaint submitted by student',
+            status: 'Submitted',
+            createdBy: _currentUser!.id,
+          );
+        }
+      } catch (e) {
+        // Do nothing: hide timeline errors from user
+        print('Timeline entry error ignored: $e');
+      }
 
+      // Always show success dialog
       if (mounted) {
         showDialog(
           context: context,
@@ -127,7 +137,11 @@ class _SubmitComplaintScreenState extends State<SubmitComplaintScreen> {
           ),
         );
       }
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
+      // Only show error if complaint creation itself fails
       setState(() {
         _error = 'Error submitting complaint: $e';
         _isLoading = false;

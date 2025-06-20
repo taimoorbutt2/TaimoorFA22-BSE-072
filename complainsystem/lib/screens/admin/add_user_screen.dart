@@ -19,7 +19,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  
+
   String _selectedRole = 'student';
   String? _selectedBatchId;
   List<Batch> _batches = [];
@@ -52,7 +52,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
 
   void _addUser() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -135,7 +135,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = 'Error submitting complaint: $e';
         _isLoading = false;
       });
     }
@@ -264,4 +264,4 @@ class _AddUserScreenState extends State<AddUserScreen> {
       ),
     );
   }
-} 
+}

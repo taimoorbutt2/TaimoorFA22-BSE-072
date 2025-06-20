@@ -77,8 +77,7 @@ class _HodComplaintActionScreenState extends State<HodComplaintActionScreen> {
         'complaint_id': widget.complaint.id,
         'status': status,
         'comment': _commentController.text.trim(),
-        'user_id': SupabaseService.getCurrentUser()?.id,
-        'user_role': 'hod',
+        'created_by': SupabaseService.getCurrentUser()?.id,
       });
 
       // Send email notification
