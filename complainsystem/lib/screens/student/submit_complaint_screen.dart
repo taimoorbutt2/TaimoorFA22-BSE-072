@@ -92,9 +92,6 @@ class _SubmitComplaintScreenState extends State<SubmitComplaintScreen> {
     try {
       final title = _isCustomTitle ? _titleController.text.trim() : _selectedTitle;
       
-      // Get the count of existing complaints with the same title
-      final sameTitleCount = await SupabaseService.getSameTitleComplaintCount(title);
-
       final complaintData = {
         'student_id': _currentUser!.id,
         'batch_id': _userBatch!.id,
@@ -103,7 +100,6 @@ class _SubmitComplaintScreenState extends State<SubmitComplaintScreen> {
         'description': _descriptionController.text.trim(),
         'media_url': _mediaUrlController.text.trim().isEmpty ? null : _mediaUrlController.text.trim(),
         'status': 'Submitted',
-        'same_title_count': sameTitleCount + 1,
       };
 
       // Create the complaint and get its ID

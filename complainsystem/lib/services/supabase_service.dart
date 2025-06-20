@@ -327,20 +327,6 @@ class SupabaseService {
     }
   }
 
-  static Future<int> getSameTitleComplaintCount(String title) async {
-    try {
-      final response = await _supabase
-          .from('complaints')
-          .select('id')
-          .eq('title', title)
-          .not('status', 'in', '(Resolved,Rejected)');
-      
-      return (response as List).length;
-    } catch (e) {
-      return 0;
-    }
-  }
-
   static Future<app_user.User?> getHOD() async {
     try {
       final response = await _supabase

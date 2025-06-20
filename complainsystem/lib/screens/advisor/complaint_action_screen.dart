@@ -69,47 +69,44 @@ class _ComplaintActionScreenState extends State<ComplaintActionScreen> {
     });
 
     try {
+      final data = <String, dynamic>{
+        'status': newStatus,
+        'last_action_at': DateTime.now().toIso8601String(),
+      };
+
       if (newStatus == 'Escalated') {
-        // Directly assign the provided HOD ID
-        await SupabaseService.updateComplaint(widget.complaint.id, {
-          'status': 'Escalated',
-          'hod_id': '497267c2-eae7-4097-9e91-39d09f6013ea',
-          'last_action_at': DateTime.now().toIso8601String(),
-        });
-        await SupabaseService.addTimelineEntry({
-          'complaint_id': widget.complaint.id,
-          'comment': comment,
-          'status': 'Escalated',
-          'created_by': SupabaseService.getCurrentUser()!.id,
-        });
-        await _loadData();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Status updated to Escalated')),
-        );
-        setState(() => _isUpdating = false);
-        return;
+        final hod = await SupabaseService.getHOD();
+        if (hod == null) {
+          throw Exception('HOD not found');
+        }
+        data['hod_id'] = hod.id;
       } else {
-        // Normal status update
-        await SupabaseService.updateComplaint(widget.complaint.id, {
-          'status': newStatus,
-          'last_action_at': DateTime.now().toIso8601String(),
-        });
-        await SupabaseService.addTimelineEntry({
-          'complaint_id': widget.complaint.id,
-          'comment': comment,
-          'status': newStatus,
-          'created_by': SupabaseService.getCurrentUser()!.id,
-        });
+        // This is a normal status update by the advisor
       }
 
-      await _loadData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Status updated to $newStatus')),
-      );
-    } catch (e) {
-      setState(() {
-        _error = 'Error updating status: $e';
+      // Update complaint
+      await SupabaseService.updateComplaint(widget.complaint.id, data);
+
+      // Add timeline entry
+      await SupabaseService.addTimelineEntry({
+        'complaint_id': widget.complaint.id,
+        'comment': comment,
+        'status': newStatus,
+        'created_by': SupabaseService.getCurrentUser()!.id,
       });
+
+      await _loadData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Status updated to $newStatus')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Error updating status: $e';
+        });
+      }
     } finally {
       setState(() => _isUpdating = false);
     }

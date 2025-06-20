@@ -176,7 +176,9 @@ class _HodComplaintActionScreenState extends State<HodComplaintActionScreen> {
                             widget.complaint.description,
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                          if (widget.complaint.sameTitleCount > 1) ...[
+                          if (widget.complaint.sameTitleCount > 1 &&
+                              widget.complaint.status != 'Resolved' &&
+                              widget.complaint.status != 'Rejected') ...[
                             const SizedBox(height: 16),
                             Container(
                               padding: const EdgeInsets.all(12),
@@ -191,7 +193,7 @@ class _HodComplaintActionScreenState extends State<HodComplaintActionScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'This complaint has ${widget.complaint.sameTitleCount} similar titles. Please review carefully.',
+                                      'This complaint has ${widget.complaint.sameTitleCount - 1} other similar titles. Please review carefully.',
                                       style: TextStyle(
                                         color: Colors.orange.shade700,
                                         fontWeight: FontWeight.w500,
