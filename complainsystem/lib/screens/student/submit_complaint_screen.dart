@@ -90,8 +90,9 @@ class _SubmitComplaintScreenState extends State<SubmitComplaintScreen> {
     });
 
     try {
+      final studentId = _currentUser!.studentId;
       final complaintData = {
-        'student_id': _currentUser!.id,
+        'student_id': studentId,
         'batch_id': _userBatch!.id,
         'advisor_id': _batchAdvisor?.id,
         'title': _isCustomTitle ? _titleController.text.trim() : _selectedTitle,

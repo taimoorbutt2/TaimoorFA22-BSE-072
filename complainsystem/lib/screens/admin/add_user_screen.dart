@@ -45,9 +45,19 @@ class _AddUserScreenState extends State<AddUserScreen> {
     }
   }
 
-  String _generateStudentId() {
-    final studentCount = _batches.length + 1;
-    return '${AppConstants.studentIdPrefix}${studentCount.toString().padLeft(2, '0')}';
+  Future<String> _generateStudentId() async {
+    final students = await SupabaseService.getAllProfiles(role: 'student');
+    int studentCount = students.length + 1;
+    String studentId;
+
+    while (true) {
+      studentId = '${AppConstants.studentIdPrefix}${studentCount.toString().padLeft(2, '0')}';
+      final existingStudent = await SupabaseService.getProfileByStudentId(studentId);
+      if (existingStudent == null) {
+        return studentId;
+      }
+      studentCount++;
+    }
   }
 
   void _addUser() async {
@@ -63,7 +73,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
       String? batchId;
 
       if (_selectedRole == 'student') {
-        studentId = _generateStudentId();
+        studentId = await _generateStudentId();
         batchId = _selectedBatchId;
       } else if (_selectedRole == 'batch_advisor') {
         batchId = _selectedBatchId;
@@ -135,7 +145,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = 'Error submitting complaint: $e';
+        _error = 'Error adding user: $e';
         _isLoading = false;
       });
     }

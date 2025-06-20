@@ -85,12 +85,27 @@ class SupabaseService {
     }
   }
 
-  static Future<List<app_user.User>> getAllProfiles() async {
+  static Future<app_user.User?> getProfileByStudentId(String studentId) async {
     try {
       final response = await _supabase
           .from('profiles')
           .select()
-          .order('created_at', ascending: false);
+          .eq('student_id', studentId)
+          .single();
+      return app_user.User.fromJson(response);
+    } catch (e) {
+      // If single() throws, it means 0 or more than 1 rows were found. We can assume no user found.
+      return null;
+    }
+  }
+
+  static Future<List<app_user.User>> getAllProfiles({String? role}) async {
+    try {
+      var query = _supabase.from('profiles').select();
+      if (role != null) {
+        query = query.eq('role', role);
+      }
+      final response = await query.order('created_at', ascending: false);
       
       return (response as List).map((json) => app_user.User.fromJson(json)).toList();
     } catch (e) {
