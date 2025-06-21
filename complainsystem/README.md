@@ -1,4 +1,3 @@
-
 # 🎓 Smart Complaint Management System (SCMS)
 
 A role-based Flutter app to streamline complaint handling for the Computer Science (CS) department — from students to Batch Advisors and the HOD.
@@ -9,9 +8,9 @@ A role-based Flutter app to streamline complaint handling for the Computer Scien
 
 An efficient complaint lifecycle for CS batches (FA18–FA25):
 
-- 📩 Students submit complaints
-- 🧑‍🏫 Batch Advisors resolve or escalate
-- 👨‍💼 HOD reviews and closes
+- 📩 Students submit complaints  
+- 🧑‍🏫 Batch Advisors resolve or escalate  
+- 👨‍💼 HOD reviews and closes  
 - 🛠️ Admin manages users, batches, and complaints via dashboard or CSV
 
 ---
@@ -19,40 +18,40 @@ An efficient complaint lifecycle for CS batches (FA18–FA25):
 ## 👥 User Roles & Features
 
 ### 🔐 Admin
-- One-time signup with SMTP-based credentials
-- Add Students, Advisors, HOD (Manual / CSV)
-- Manage batches (FA18–FA25)
-- View & track complaints
-- HTML email delivery of credentials
+- One-time signup with SMTP-based credentials  
+- Add Students, Advisors, HOD (Manual / CSV)  
+- Manage batches (FA18–FA25)  
+- View & track complaints  
+- HTML email delivery of credentials  
 
 ### 🧑‍🎓 Student
-- Login via ID (e.g., BCS-01) and email
-- Submit complaints (with dropdowns/media via Drive link)
-- Auto-assign to advisor
-- Auto-escalate to HOD if 5+ same-title complaints
-- Track status & comments
+- Login via ID (e.g., BCS-01) and email  
+- Submit complaints (with dropdowns/media via Drive link)  
+- Auto-assign to advisor  
+- Auto-escalate to HOD if 5+ same-title complaints  
+- Track status & comments  
 
 ### 👨‍🏫 Batch Advisor
-- View complaints from assigned batch
-- Actions: Resolve, Comment, Escalate
-- Auto-escalation after 24 hours of inaction
-- View timeline & history
+- View complaints from assigned batch  
+- Actions: Resolve, Comment, Escalate  
+- Auto-escalation after 24 hours of inaction  
+- View timeline & history  
 
 ### 👨‍💼 HOD
-- View escalated or mass-submitted complaints
-- Actions: Comment, Resolve, Reject
-- Priority handling for repeated complaints
-- Access full complaint timeline
+- View escalated or mass-submitted complaints  
+- Actions: Comment, Resolve, Reject  
+- Priority handling for repeated complaints  
+- Access full complaint timeline  
 
 ---
 
 ## ⚙️ Functional Overview
 
-- 🔐 **Authentication**: Role-based login for Admin, Student, Advisor, and HOD
-- 📈 **Status Flow**: Submitted → In Progress → Escalated → Resolved/Rejected
-- 📤 **CSV Import**: Upload, preview, edit, confirm student records
-- 🔔 **Notifications**: Real-time (Supabase) + SMTP Email
-- 📁 **Media Support**: Complaint media via public Google Drive links
+- 🔐 **Authentication**: Role-based login for Admin, Student, Advisor, and HOD  
+- 📈 **Status Flow**: Submitted → In Progress → Escalated → Resolved/Rejected  
+- 📤 **CSV Import**: Upload, preview, edit, confirm student records  
+- 🔔 **Notifications**: Real-time (Supabase) + SMTP Email  
+- 📁 **Media Support**: Complaint media via public Google Drive links  
 
 ---
 
@@ -71,9 +70,9 @@ An efficient complaint lifecycle for CS batches (FA18–FA25):
 
 ## 📧 Email Highlights
 
-- HTML-based template for user credentials
-- Sent via **smtp.gmail.com** with unsubscribe links
-- Covers Admin, Advisor, HOD, and Student accounts
+- HTML-based templates with user credentials  
+- Sent via **smtp.gmail.com** with unsubscribe & branding  
+- Roles covered: Admin, Advisor, HOD, Student  
 
 ---
 
@@ -132,43 +131,30 @@ An efficient complaint lifecycle for CS batches (FA18–FA25):
 </p>
 
 ---
-Apk Link:
-https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link
+
+### 📬 Email Verification Screens
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/948c6db0-faf6-4c13-97d0-082a531844ae" width="250"/>
+  <img src="https://github.com/user-attachments/assets/aaf72798-cf18-48f0-a760-3dd473ef3877" width="250"/>
+  <img src="https://github.com/user-attachments/assets/a98b5ea5-2c1f-472f-940b-5f4facb15c59" width="250"/>
+  <img src="https://github.com/user-attachments/assets/15d51ecd-37ff-4c60-8769-e43ec36fffe1" width="250"/>
+</p>
+
 ---
 
-## 📌 Contributing
+## 📱 APK Download
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
+👉 [**Download APK from Google Drive**](https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link)
 
 ---
 
-## © 2025 Smart Complaint Management System
+## 🤝 Contributing
 
+Pull requests are welcome. For major changes, please open an issue first to discuss improvements.
+
+---
+
+## 🏷️ License
+
+© 2025 Smart Complaint Management System  
 CS Department, Complaint Committee | All Rights Reserved
-
-
-
-
- 
-
-
-     
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
