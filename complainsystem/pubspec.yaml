@@ -70,6 +70,12 @@ dependencies:
   
   # Lottie animations
   lottie: ^3.3.1
+  
+  # Animated Gradient
+  animate_gradient: ^0.0.3
+  
+  # Glassmorphism
+  glassmorphism: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -97,9 +103,10 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/fonts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
+  # https://flutter.dev/assets-and-images/#resolution-aware
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
