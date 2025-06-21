@@ -142,12 +142,17 @@ An efficient complaint lifecycle for CS batches (FA18–FA25):
 
 ---
 
-## 📲 APK & App Demo
+## 📽️ App Demo Video
 
-- ▶️ **[Watch App Demo Video](https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link)**  
-- 📦 **[Download APK File](https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link)**
+🎬 **[Watch App Demo](https://drive.google.com/drive/folders/1GQk4WfZlVBHjXBDi7dV9Bb1pzvJtUEvN?usp=drive_link)**  
+Preview core features, role dashboards, and full complaint lifecycle flow.
 
-> _Note: Make sure the Drive folder is publicly accessible._
+---
+
+## 📦 APK Download
+
+📱 **[Download APK File](https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link)**  
+Install and test the app on your Android device.
 
 ---
 
