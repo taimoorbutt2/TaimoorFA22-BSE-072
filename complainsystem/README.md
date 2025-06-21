@@ -142,9 +142,12 @@ An efficient complaint lifecycle for CS batches (FA18–FA25):
 
 ---
 
-## 📱 APK Download
+## 📲 APK & App Demo
 
-👉 [**Download APK from Google Drive**](https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link)
+- ▶️ **[Watch App Demo Video](https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link)**  
+- 📦 **[Download APK File](https://drive.google.com/drive/folders/14gA7_R1TKbyKldfwr6DnJOtsKQHAJB42?usp=drive_link)**
+
+> _Note: Make sure the Drive folder is publicly accessible._
 
 ---
 
