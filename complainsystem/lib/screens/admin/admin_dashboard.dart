@@ -815,7 +815,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(12), // Reduced padding
+                  padding: const EdgeInsets.all(10), // Reduced from 12 to 10
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -835,7 +835,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6), // Reduced spacing
+                      const SizedBox(height: 4), // Reduced from 6 to 4
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -846,7 +846,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             backgroundColor: Colors.deepPurple,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)), // Smaller radius
-                            padding: const EdgeInsets.symmetric(vertical: 6), // Reduced padding
+                            padding: const EdgeInsets.symmetric(vertical: 4), // Reduced from 6 to 4
                           ),
                         ),
                       ),
