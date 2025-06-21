@@ -33,22 +33,22 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^1.0.2
   
   # Supabase
-  supabase_flutter: ^2.3.4
+  supabase_flutter: ^2.5.0
   
   # Email handling
-  mailer: ^6.0.1
+  mailer: ^6.1.0
   
   # CSV handling
-  csv: ^5.1.1
+  csv: ^6.0.0
   
   # File handling
-  file_picker: ^10.2.0
+  file_picker: ^8.0.0+1
   
   # URL validation and launching
-  url_launcher: ^6.2.4
+  url_launcher: ^6.2.6
   
   # Email validation
   email_validator: ^2.1.17
@@ -65,11 +65,11 @@ dependencies:
   # HTTP requests
   http: ^1.1.2
   
-  # Shared preferences
-  shared_preferences: ^2.2.2
-  
   # Permission handling
   permission_handler: ^11.3.0
+  
+  # Lottie animations
+  lottie: ^3.3.1
 
 dev_dependencies:
   flutter_test:
