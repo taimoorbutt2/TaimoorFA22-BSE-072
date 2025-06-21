@@ -520,72 +520,164 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GlassmorphicContainer(
-          width: double.infinity,
-          height: 80,
-          borderRadius: 20,
-          blur: 15,
-          alignment: Alignment.center,
-          border: 2,
-          linearGradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withOpacity(0.8),
-              Colors.white.withOpacity(0.6),
-            ],
-          ),
-          borderGradient: LinearGradient(
-            colors: [
-              Colors.deepPurple.withOpacity(0.3),
-              Colors.deepPurple.withOpacity(0.3),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                const Icon(Icons.people, size: 32, color: Colors.deepPurple),
-                const SizedBox(width: 16),
-                const Text(
-                  'User Management',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Use Column layout for smaller screens, Row for larger screens
+            if (constraints.maxWidth < 600) {
+              return GlassmorphicContainer(
+                width: double.infinity,
+                height: 100, // Increased height for mobile layout
+                borderRadius: 20,
+                blur: 15,
+                alignment: Alignment.center,
+                border: 2,
+                linearGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.8),
+                    Colors.white.withOpacity(0.6),
+                  ],
+                ),
+                borderGradient: LinearGradient(
+                  colors: [
+                    Colors.deepPurple.withOpacity(0.3),
+                    Colors.deepPurple.withOpacity(0.3),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10), // Reduced from 12 to 10
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.people, size: 20, color: Colors.deepPurple), // Smaller icon
+                          const SizedBox(width: 8), // Reduced spacing
+                          const Expanded(
+                            child: Text(
+                              'User Management',
+                              style: TextStyle(
+                                fontSize: 16, // Smaller font
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4), // Reduced from 6 to 4
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const AddUserScreen()),
+                              ).then((_) => _loadData()),
+                              icon: const Icon(Icons.add, size: 14), // Smaller icon
+                              label: const Text('Add User', style: TextStyle(fontSize: 11)), // Smaller text
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)), // Smaller radius
+                                padding: const EdgeInsets.symmetric(vertical: 4), // Reduced from 6 to 4
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6), // Reduced spacing
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CsvImportScreen()),
+                              ).then((_) => _loadData()),
+                              icon: const Icon(Icons.upload_file, size: 14), // Smaller icon
+                              label: const Text('Import CSV', style: TextStyle(fontSize: 11)), // Smaller text
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade600,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)), // Smaller radius
+                                padding: const EdgeInsets.symmetric(vertical: 4), // Reduced from 6 to 4
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AddUserScreen()),
-                  ).then((_) => _loadData()),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add User'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              );
+            } else {
+              return GlassmorphicContainer(
+                width: double.infinity,
+                height: 80, // Original height for desktop
+                borderRadius: 20,
+                blur: 15,
+                alignment: Alignment.center,
+                border: 2,
+                linearGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.8),
+                    Colors.white.withOpacity(0.6),
+                  ],
+                ),
+                borderGradient: LinearGradient(
+                  colors: [
+                    Colors.deepPurple.withOpacity(0.3),
+                    Colors.deepPurple.withOpacity(0.3),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.people, size: 32, color: Colors.deepPurple),
+                      const SizedBox(width: 16),
+                      const Text(
+                        'User Management',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AddUserScreen()),
+                        ).then((_) => _loadData()),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add User'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CsvImportScreen()),
+                        ).then((_) => _loadData()),
+                        icon: const Icon(Icons.upload_file),
+                        label: const Text('Import CSV'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade600,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CsvImportScreen()),
-                  ).then((_) => _loadData()),
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Import CSV'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade600,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              );
+            }
+          },
         ),
         const SizedBox(height: 24),
         Expanded(
@@ -697,55 +789,124 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GlassmorphicContainer(
-          width: double.infinity,
-          height: 80,
-          borderRadius: 20,
-          blur: 15,
-          alignment: Alignment.center,
-          border: 2,
-          linearGradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withOpacity(0.8),
-              Colors.white.withOpacity(0.6),
-            ],
-          ),
-          borderGradient: LinearGradient(
-            colors: [
-              Colors.deepPurple.withOpacity(0.3),
-              Colors.deepPurple.withOpacity(0.3),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                const Icon(Icons.school, size: 32, color: Colors.deepPurple),
-                const SizedBox(width: 16),
-                const Text(
-                  'Batch Management',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Use Column layout for smaller screens, Row for larger screens
+            if (constraints.maxWidth < 500) {
+              return GlassmorphicContainer(
+                width: double.infinity,
+                height: 90, // Increased height for mobile layout
+                borderRadius: 20,
+                blur: 15,
+                alignment: Alignment.center,
+                border: 2,
+                linearGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.8),
+                    Colors.white.withOpacity(0.6),
+                  ],
+                ),
+                borderGradient: LinearGradient(
+                  colors: [
+                    Colors.deepPurple.withOpacity(0.3),
+                    Colors.deepPurple.withOpacity(0.3),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12), // Reduced padding
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.school, size: 20, color: Colors.deepPurple), // Smaller icon
+                          const SizedBox(width: 8), // Reduced spacing
+                          const Expanded(
+                            child: Text(
+                              'Batch Management',
+                              style: TextStyle(
+                                fontSize: 16, // Smaller font
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6), // Reduced spacing
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _createBatches,
+                          icon: const Icon(Icons.add, size: 14), // Smaller icon
+                          label: const Text('Create Batches', style: TextStyle(fontSize: 11)), // Smaller text
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)), // Smaller radius
+                            padding: const EdgeInsets.symmetric(vertical: 6), // Reduced padding
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: _createBatches,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Batches'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              );
+            } else {
+              return GlassmorphicContainer(
+                width: double.infinity,
+                height: 80, // Original height for desktop
+                borderRadius: 20,
+                blur: 15,
+                alignment: Alignment.center,
+                border: 2,
+                linearGradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.8),
+                    Colors.white.withOpacity(0.6),
+                  ],
+                ),
+                borderGradient: LinearGradient(
+                  colors: [
+                    Colors.deepPurple.withOpacity(0.3),
+                    Colors.deepPurple.withOpacity(0.3),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.school, size: 32, color: Colors.deepPurple),
+                      const SizedBox(width: 16),
+                      const Text(
+                        'Batch Management',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        onPressed: _createBatches,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Create Batches'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              );
+            }
+          },
         ),
         const SizedBox(height: 24),
         Expanded(
