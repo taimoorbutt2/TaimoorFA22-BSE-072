@@ -16,12 +16,20 @@ class AdminDashboard extends StatefulWidget {
   State<AdminDashboard> createState() => _AdminDashboardState();
 }
 
-class _AdminDashboardState extends State<AdminDashboard> {
+class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStateMixin {
   List<app_user.User> _users = [];
   List<Batch> _batches = [];
   List<Complaint> _complaints = [];
   bool _isLoading = true;
   int _selectedIndex = 0;
+
+  // Animation controllers
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late AnimationController _scaleController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
 
   final List<String> _menuTitles = [
     'Overview',
@@ -39,11 +47,65 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   void initState() {
     super.initState();
+    
+    // Initialize animation controllers
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    // Initialize animations
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _scaleController,
+      curve: Curves.elasticOut,
+    ));
+
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    _scaleController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
+    
+    // Start animations
+    _fadeController.forward();
+    _slideController.forward();
+    _scaleController.forward();
+    
     try {
       final users = await SupabaseService.getAllProfiles();
       final batches = await SupabaseService.getAllBatches();
@@ -63,6 +125,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
             backgroundColor: Colors.red.shade400,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            animation: CurvedAnimation(
+              parent: AnimationController(duration: Duration(milliseconds: 300), vsync: this),
+              curve: Curves.easeInOut,
+            ),
           ),
         );
       }
@@ -70,13 +136,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   void _signOut(BuildContext context) async {
+    // Add scale animation for button press
+    _scaleController.reverse().then((_) {
+      _scaleController.forward();
+    });
+    
     await SupabaseService.signOut();
     Navigator.pushReplacementNamed(context, '/login');
   }
 
   void _onMenuTap(int index) {
-    setState(() {
-      _selectedIndex = index;
+    // Add smooth transition animation
+    _slideController.reverse().then((_) {
+      setState(() {
+        _selectedIndex = index;
+      });
+      _slideController.forward();
     });
     Navigator.pop(context);
   }
@@ -119,34 +194,77 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ],
         child: Stack(
           children: [
-            // Decorative shapes
-            Positioned(top: 100, right: 50, child: _buildShape(Colors.blue.withOpacity(0.1), 150)),
-            Positioned(top: 300, left: 30, child: _buildShape(Colors.purple.withOpacity(0.1), 100)),
-            Positioned(bottom: 200, right: 100, child: _buildShape(Colors.green.withOpacity(0.1), 120)),
-            // Main content
-            _isLoading
-                ? Center(
-                    child: GlassmorphicContainer(
-                      width: 100,
-                      height: 100,
-                      borderRadius: 20,
-                      blur: 15,
-                      alignment: Alignment.center,
-                      border: 2,
-                      linearGradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Colors.white, Colors.white70],
+            // Decorative shapes with animation
+            AnimatedBuilder(
+              animation: _fadeAnimation,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _fadeAnimation.value,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 100,
+                        right: 50,
+                        child: Transform.translate(
+                          offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                          child: _buildShape(Colors.blue.withOpacity(0.1), 150),
+                        ),
                       ),
-                      borderGradient: LinearGradient(
-                        colors: [Colors.white, Colors.white70],
+                      Positioned(
+                        top: 300,
+                        left: 30,
+                        child: Transform.translate(
+                          offset: Offset(0, -20 * (1 - _fadeAnimation.value)),
+                          child: _buildShape(Colors.purple.withOpacity(0.1), 100),
+                        ),
                       ),
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                      Positioned(
+                        bottom: 200,
+                        right: 100,
+                        child: Transform.translate(
+                          offset: Offset(20 * (1 - _fadeAnimation.value), 0),
+                          child: _buildShape(Colors.green.withOpacity(0.1), 120),
+                        ),
                       ),
-                    ),
-                  )
-                : _buildMainContent(),
+                    ],
+                  ),
+                );
+              },
+            ),
+            // Main content with slide animation
+            SlideTransition(
+              position: _slideAnimation,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: _isLoading
+                    ? Center(
+                        child: ScaleTransition(
+                          scale: _scaleAnimation,
+                          child: GlassmorphicContainer(
+                            width: 100,
+                            height: 100,
+                            borderRadius: 20,
+                            blur: 15,
+                            alignment: Alignment.center,
+                            border: 2,
+                            linearGradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Colors.white, Colors.white70],
+                            ),
+                            borderGradient: LinearGradient(
+                              colors: [Colors.white, Colors.white70],
+                            ),
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                        ),
+                      )
+                    : _buildMainContent(),
+              ),
+            ),
           ],
         ),
       ),
@@ -168,7 +286,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
               child: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: _buildContent(constraints.maxWidth),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.1, 0),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeInOut,
+                        )),
+                        child: FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _buildContent(constraints.maxWidth),
+                  ),
                 ),
               ),
             ),
@@ -419,20 +555,36 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ),
         const SizedBox(height: 12), // Reduced spacing
+        const SizedBox(height: 16),
         Expanded(
           child: GridView.count(
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: const BouncingScrollPhysics(), // Smooth scrolling
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 8, // Reduced spacing
-            crossAxisSpacing: 8, // Reduced spacing
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
             childAspectRatio: childAspectRatio,
-            padding: const EdgeInsets.only(bottom: 8), // Reduced padding
-            children: stats.map((stat) => _buildStatCard(
-              stat['title'] as String,
-              stat['value'] as String,
-              stat['icon'] as IconData,
-              gradient: stat['gradient'] as List<Color>,
-            )).toList(),
+            padding: const EdgeInsets.only(bottom: 8),
+            children: stats.asMap().entries.map((entry) {
+              final index = entry.key;
+              final stat = entry.value;
+              return AnimatedBuilder(
+                animation: _fadeAnimation,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, 30 * (1 - _fadeAnimation.value)),
+                    child: Opacity(
+                      opacity: _fadeAnimation.value,
+                      child: _buildStatCard(
+                        stat['title'] as String,
+                        stat['value'] as String,
+                        stat['icon'] as IconData,
+                        gradient: stat['gradient'] as List<Color>,
+                      ),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
           ),
         ),
       ],
@@ -703,6 +855,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ],
             ),
             child: ListView.separated(
+              physics: const BouncingScrollPhysics(), // Smooth scrolling
               padding: const EdgeInsets.all(16),
               itemCount: _users.length,
               separatorBuilder: (context, index) => Divider(
@@ -711,7 +864,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
               itemBuilder: (context, index) {
                 final user = _users[index];
-                return _buildUserTile(user);
+                return AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: _buildUserTile(user),
+                      ),
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -795,7 +959,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             if (constraints.maxWidth < 500) {
               return GlassmorphicContainer(
                 width: double.infinity,
-                height: 90, // Increased height for mobile layout
+                height: 88, // Reduced from 90 to 88
                 borderRadius: 20,
                 blur: 15,
                 alignment: Alignment.center,
@@ -815,19 +979,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(10), // Reduced from 12 to 10
+                  padding: const EdgeInsets.all(6), // Reduced from 8 to 6
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.school, size: 20, color: Colors.deepPurple), // Smaller icon
-                          const SizedBox(width: 8), // Reduced spacing
+                          const Icon(Icons.school, size: 16, color: Colors.deepPurple), // Reduced from 18 to 16
+                          const SizedBox(width: 4), // Reduced from 6 to 4
                           const Expanded(
                             child: Text(
                               'Batch Management',
                               style: TextStyle(
-                                fontSize: 16, // Smaller font
+                                fontSize: 14, // Reduced from 15 to 14
                                 fontWeight: FontWeight.bold,
                                 color: Colors.deepPurple,
                               ),
@@ -835,18 +999,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4), // Reduced from 6 to 4
+                      const SizedBox(height: 2), // Reduced from 3 to 2
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: _createBatches,
-                          icon: const Icon(Icons.add, size: 14), // Smaller icon
-                          label: const Text('Create Batches', style: TextStyle(fontSize: 11)), // Smaller text
+                          icon: const Icon(Icons.add, size: 12), // Reduced from 13 to 12
+                          label: const Text('Create Batches', style: TextStyle(fontSize: 9)), // Reduced from 10 to 9
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepPurple,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)), // Smaller radius
-                            padding: const EdgeInsets.symmetric(vertical: 4), // Reduced from 6 to 4
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)), // Smaller radius
+                            padding: const EdgeInsets.symmetric(vertical: 2), // Reduced from 3 to 2
                           ),
                         ),
                       ),
@@ -932,6 +1096,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ],
             ),
             child: ListView.builder(
+              physics: const BouncingScrollPhysics(), // Smooth scrolling
               padding: const EdgeInsets.all(16),
               itemCount: _batches.length,
               itemBuilder: (context, index) {
@@ -946,7 +1111,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     createdAt: DateTime.now(),
                   ),
                 );
-                return _buildBatchTile(batch, advisor);
+                return AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: _buildBatchTile(batch, advisor),
+                      ),
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -1089,6 +1265,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ],
             ),
             child: ListView.builder(
+              physics: const BouncingScrollPhysics(), // Smooth scrolling
               padding: const EdgeInsets.all(16),
               itemCount: _complaints.length,
               itemBuilder: (context, index) {
@@ -1103,7 +1280,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     createdAt: DateTime.now(),
                   ),
                 );
-                return _buildComplaintTile(complaint, student);
+                return AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: _buildComplaintTile(complaint, student),
+                      ),
+                    );
+                  },
+                );
               },
             ),
           ),
