@@ -295,7 +295,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                                       [Colors.blue.shade400, Colors.blue.shade600],
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: _buildStatCard(
                                       'Pending',
@@ -304,7 +304,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                                       [Colors.orange.shade400, Colors.orange.shade600],
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: _buildStatCard(
                                       'Resolved',
@@ -317,91 +317,140 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                               ),
                             ),
                             // Complaints Section
-                            Expanded(
-                              child: _complaints.isEmpty
-                                  ? Center(
-                                      child: GlassmorphicContainer(
-                                        width: 300,
-                                        height: 200,
-                                        borderRadius: 20,
-                                        blur: 15,
-                                        alignment: Alignment.center,
-                                        border: 2,
-                                        linearGradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            Colors.white.withOpacity(0.8),
-                                            Colors.white.withOpacity(0.6),
-                                          ],
-                                        ),
-                                        borderGradient: LinearGradient(
-                                          colors: [
-                                            Colors.deepPurple.withOpacity(0.3),
-                                            Colors.deepPurple.withOpacity(0.3),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'No complaints yet',
-                                              style: TextStyle(fontSize: 18, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              'Submit your first complaint to get started',
-                                              style: TextStyle(color: Colors.grey.shade500),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  : GlassmorphicContainer(
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      borderRadius: 20,
-                                      blur: 15,
-                                      alignment: Alignment.center,
-                                      border: 2,
-                                      linearGradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          Colors.white.withOpacity(0.8),
-                                          Colors.white.withOpacity(0.6),
-                                        ],
-                                      ),
-                                      borderGradient: LinearGradient(
-                                        colors: [
-                                          Colors.deepPurple.withOpacity(0.3),
-                                          Colors.deepPurple.withOpacity(0.3),
-                                        ],
-                                      ),
-                                      child: ListView.builder(
-                                        physics: const BouncingScrollPhysics(),
-                                        padding: const EdgeInsets.all(16),
-                                        itemCount: _complaints.length,
-                                        itemBuilder: (context, index) {
-                                          final complaint = _complaints[index];
-                                          return AnimatedBuilder(
-                                            animation: _fadeAnimation,
-                                            builder: (context, child) {
-                                              return Transform.translate(
-                                                offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                                                child: Opacity(
-                                                  opacity: _fadeAnimation.value,
-                                                  child: _buildComplaintTile(complaint),
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: GlassmorphicContainer(
+                                width: double.infinity,
+                                height: 400,
+                                borderRadius: 20,
+                                blur: 15,
+                                alignment: Alignment.center,
+                                border: 2,
+                                linearGradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white.withOpacity(0.8),
+                                    Colors.white.withOpacity(0.6),
+                                  ],
+                                ),
+                                borderGradient: LinearGradient(
+                                  colors: [
+                                    Colors.purple.shade400.withOpacity(0.5),
+                                    Colors.purple.shade600.withOpacity(0.5),
+                                  ],
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(18),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.purple.shade50.withOpacity(0.3),
+                                        Colors.blue.shade50.withOpacity(0.2),
+                                        Colors.indigo.shade50.withOpacity(0.1),
+                                      ],
                                     ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(20.0),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Colors.purple.shade400,
+                                                    Colors.purple.shade600,
+                                                  ],
+                                                ),
+                                              ),
+                                              child: const Icon(
+                                                Icons.assignment,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Recent Complaints',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.purple.shade800,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: _complaints.isEmpty
+                                            ? Center(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.all(16),
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        gradient: LinearGradient(
+                                                          colors: [
+                                                            Colors.grey.shade300,
+                                                            Colors.grey.shade400,
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.inbox_outlined,
+                                                        size: 48,
+                                                        color: Colors.grey.shade600,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    Text(
+                                                      'No complaints yet',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.grey.shade600,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      'Submit your first complaint to get started',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.grey.shade500,
+                                                      ),
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            : ListView.builder(
+                                                physics: const BouncingScrollPhysics(),
+                                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                                itemCount: _complaints.length,
+                                                itemBuilder: (context, index) {
+                                                  final complaint = _complaints[index];
+                                                  return AnimatedContainer(
+                                                    duration: Duration(milliseconds: 300 + (index * 100)),
+                                                    margin: const EdgeInsets.only(bottom: 12),
+                                                    child: _buildComplaintCard(complaint),
+                                                  );
+                                                },
+                                              ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -431,7 +480,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
   Widget _buildStatCard(String title, String value, IconData icon, List<Color> gradient) {
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 100,
+      height: 80,
       borderRadius: 16,
       blur: 15,
       alignment: Alignment.center,
@@ -463,32 +512,32 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   gradient: LinearGradient(colors: gradient),
                 ),
-                child: Icon(icon, size: 20, color: Colors.white),
+                child: Icon(icon, size: 16, color: Colors.white),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: gradient[1],
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: Colors.grey.shade700,
                   fontWeight: FontWeight.w500,
                 ),
@@ -503,69 +552,177 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
     );
   }
 
-  Widget _buildComplaintTile(Complaint complaint) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withOpacity(0.3),
+  Widget _buildComplaintCard(Complaint complaint) {
+    Color statusColor;
+    IconData statusIcon;
+    
+    switch (complaint.status) {
+      case 'Submitted':
+        statusColor = Colors.orange;
+        statusIcon = Icons.pending;
+        break;
+      case 'Under Review':
+        statusColor = Colors.blue;
+        statusIcon = Icons.visibility;
+        break;
+      case 'In Progress':
+        statusColor = Colors.purple;
+        statusIcon = Icons.engineering;
+        break;
+      case 'Resolved':
+        statusColor = Colors.green;
+        statusIcon = Icons.check_circle;
+        break;
+      case 'Rejected':
+        statusColor = Colors.red;
+        statusIcon = Icons.cancel;
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusIcon = Icons.help;
+    }
+
+    return GlassmorphicContainer(
+      width: double.infinity,
+      height: 120,
+      borderRadius: 16,
+      blur: 10,
+      alignment: Alignment.center,
+      border: 1,
+      linearGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withOpacity(0.9),
+          Colors.white.withOpacity(0.7),
+        ],
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getStatusColor(complaint.status).withOpacity(0.2),
-          child: Text(
-            complaint.title[0].toUpperCase(),
-            style: TextStyle(
-              color: _getStatusColor(complaint.status),
-              fontWeight: FontWeight.bold,
-            ),
+      borderGradient: LinearGradient(
+        colors: [
+          statusColor.withOpacity(0.3),
+          statusColor.withOpacity(0.3),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              statusColor.withOpacity(0.05),
+              statusColor.withOpacity(0.02),
+            ],
           ),
         ),
-        title: Text(
-          complaint.title,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              complaint.description,
-              style: TextStyle(color: Colors.grey.shade600),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(complaint.status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      ComplaintDetailsScreen(complaint: complaint),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(1.0, 0.0),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      )),
+                      child: child,
+                    );
+                  },
+                  transitionDuration: const Duration(milliseconds: 300),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: LinearGradient(
+                        colors: [
+                          statusColor.withOpacity(0.8),
+                          statusColor,
+                        ],
+                      ),
+                    ),
+                    child: Icon(statusIcon, color: Colors.white, size: 20),
                   ),
-                  child: Text(
-                    complaint.status,
-                    style: TextStyle(
-                      color: _getStatusColor(complaint.status),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          complaint.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          complaint.description,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color: statusColor.withOpacity(0.1),
+                              ),
+                              child: Text(
+                                complaint.status,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: statusColor,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              _formatDate(complaint.createdAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _formatDate(complaint.createdAt),
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                ),
-              ],
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.grey.shade400,
+                    size: 16,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-        trailing: Icon(Icons.arrow_forward_ios, color: Colors.deepPurple, size: 16),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ComplaintDetailsScreen(complaint: complaint),
           ),
         ),
       ),
@@ -581,23 +738,6 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
         shape: BoxShape.circle,
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Submitted':
-        return Colors.orange;
-      case 'In Progress':
-        return Colors.blue;
-      case 'Escalated':
-        return Colors.red;
-      case 'Resolved':
-        return Colors.green;
-      case 'Rejected':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
   }
 
   String _formatDate(DateTime date) {
