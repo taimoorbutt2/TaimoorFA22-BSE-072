@@ -145,6 +145,7 @@ An efficient complaint lifecycle for CS batches (FA18–FA25):
 ## 📽️ App Demo Video
 
 🎬 **[Watch App Demo](https://drive.google.com/drive/folders/1GQk4WfZlVBHjXBDi7dV9Bb1pzvJtUEvN?usp=drive_link)**  
+video divided into two parts because of its lenght with proper voice over  and full explanation of Features
 Preview core features, role dashboards, and full complaint lifecycle flow.
 
 ---
