@@ -282,9 +282,10 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                     : SafeArea(
                         child: Column(
                           children: [
-                            // Stats Section
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
+                            // Stats Section with more height
+                            Container(
+                              height: 140, // Increased from 120 to 140 (+20px to eliminate overflow)
+                              padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -316,13 +317,13 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                                 ],
                               ),
                             ),
-                            // Complaints Section
+                            // Submit Button in Middle
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                               child: GlassmorphicContainer(
                                 width: double.infinity,
-                                height: 400,
-                                borderRadius: 20,
+                                height: 60,
+                                borderRadius: 16,
                                 blur: 15,
                                 alignment: Alignment.center,
                                 border: 2,
@@ -336,118 +337,200 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                                 ),
                                 borderGradient: LinearGradient(
                                   colors: [
-                                    Colors.purple.shade400.withOpacity(0.5),
-                                    Colors.purple.shade600.withOpacity(0.5),
+                                    Colors.deepPurple.withOpacity(0.5),
+                                    Colors.deepPurple.withOpacity(0.5),
                                   ],
                                 ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(18),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Colors.purple.shade50.withOpacity(0.3),
-                                        Colors.blue.shade50.withOpacity(0.2),
-                                        Colors.indigo.shade50.withOpacity(0.1),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(20.0),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                gradient: LinearGradient(
-                                                  colors: [
-                                                    Colors.purple.shade400,
-                                                    Colors.purple.shade600,
-                                                  ],
-                                                ),
-                                              ),
-                                              child: const Icon(
-                                                Icons.assignment,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              'Recent Complaints',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.purple.shade800,
-                                              ),
-                                            ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(14),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const SubmitComplaintScreen()),
+                                    ).then((_) => _loadComplaints()),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(14),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Colors.deepPurple.withOpacity(0.1),
+                                            Colors.deepPurple.withOpacity(0.05),
                                           ],
                                         ),
                                       ),
-                                      Expanded(
-                                        child: _complaints.isEmpty
-                                            ? Center(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Container(
-                                                      padding: const EdgeInsets.all(16),
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        gradient: LinearGradient(
-                                                          colors: [
-                                                            Colors.grey.shade300,
-                                                            Colors.grey.shade400,
-                                                          ],
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(8),
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Colors.deepPurple.shade400,
+                                                  Colors.deepPurple.shade600,
+                                                ],
+                                              ),
+                                            ),
+                                            child: const Icon(
+                                              Icons.add,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Submit New Complaint',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.deepPurple.shade800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Complaints Section at Bottom with Scroll
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: GlassmorphicContainer(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  borderRadius: 20,
+                                  blur: 15,
+                                  alignment: Alignment.center,
+                                  border: 2,
+                                  linearGradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.8),
+                                      Colors.white.withOpacity(0.6),
+                                    ],
+                                  ),
+                                  borderGradient: LinearGradient(
+                                    colors: [
+                                      Colors.purple.shade400.withOpacity(0.5),
+                                      Colors.purple.shade600.withOpacity(0.5),
+                                    ],
+                                  ),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(18),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Colors.purple.shade50.withOpacity(0.3),
+                                          Colors.blue.shade50.withOpacity(0.2),
+                                          Colors.indigo.shade50.withOpacity(0.1),
+                                        ],
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      Colors.purple.shade400,
+                                                      Colors.purple.shade600,
+                                                    ],
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.assignment,
+                                                  color: Colors.white,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                'Recent Complaints',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.purple.shade800,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _complaints.isEmpty
+                                              ? Center(
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.all(16),
+                                                        decoration: BoxDecoration(
+                                                          shape: BoxShape.circle,
+                                                          gradient: LinearGradient(
+                                                            colors: [
+                                                              Colors.grey.shade300,
+                                                              Colors.grey.shade400,
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        child: Icon(
+                                                          Icons.inbox_outlined,
+                                                          size: 48,
+                                                          color: Colors.grey.shade600,
                                                         ),
                                                       ),
-                                                      child: Icon(
-                                                        Icons.inbox_outlined,
-                                                        size: 48,
-                                                        color: Colors.grey.shade600,
+                                                      const SizedBox(height: 16),
+                                                      Text(
+                                                        'No complaints yet',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: Colors.grey.shade600,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    const SizedBox(height: 16),
-                                                    Text(
-                                                      'No complaints yet',
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        color: Colors.grey.shade600,
-                                                        fontWeight: FontWeight.w500,
+                                                      const SizedBox(height: 8),
+                                                      Text(
+                                                        'Submit your first complaint to get started',
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          color: Colors.grey.shade500,
+                                                        ),
+                                                        textAlign: TextAlign.center,
                                                       ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Text(
-                                                      'Submit your first complaint to get started',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        color: Colors.grey.shade500,
-                                                      ),
-                                                      textAlign: TextAlign.center,
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
+                                                )
+                                              : ListView.builder(
+                                                  physics: const BouncingScrollPhysics(),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                                  itemCount: _complaints.length,
+                                                  itemBuilder: (context, index) {
+                                                    final complaint = _complaints[index];
+                                                    return AnimatedContainer(
+                                                      duration: Duration(milliseconds: 300 + (index * 100)),
+                                                      margin: const EdgeInsets.only(bottom: 12),
+                                                      child: _buildComplaintCard(complaint),
+                                                    );
+                                                  },
                                                 ),
-                                              )
-                                            : ListView.builder(
-                                                physics: const BouncingScrollPhysics(),
-                                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                                itemCount: _complaints.length,
-                                                itemBuilder: (context, index) {
-                                                  final complaint = _complaints[index];
-                                                  return AnimatedContainer(
-                                                    duration: Duration(milliseconds: 300 + (index * 100)),
-                                                    margin: const EdgeInsets.only(bottom: 12),
-                                                    child: _buildComplaintCard(complaint),
-                                                  );
-                                                },
-                                              ),
-                                      ),
-                                    ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -460,27 +543,13 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
           ],
         ),
       ),
-      floatingActionButton: ScaleTransition(
-        scale: _scaleAnimation,
-        child: FloatingActionButton.extended(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SubmitComplaintScreen()),
-          ).then((_) => _loadComplaints()),
-          icon: const Icon(Icons.add),
-          label: const Text('Submit Complaint'),
-          backgroundColor: Colors.deepPurple,
-          foregroundColor: Colors.white,
-          elevation: 4,
-        ),
-      ),
     );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, List<Color> gradient) {
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 80,
+      height: 100,
       borderRadius: 16,
       blur: 15,
       alignment: Alignment.center,
@@ -537,7 +606,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   color: Colors.grey.shade700,
                   fontWeight: FontWeight.w500,
                 ),
@@ -584,7 +653,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
 
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 120,
+      height: 110,
       borderRadius: 16,
       blur: 10,
       alignment: Alignment.center,
@@ -642,13 +711,13 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
               );
             },
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(12.0),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       gradient: LinearGradient(
                         colors: [
                           statusColor.withOpacity(0.8),
@@ -656,9 +725,9 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                         ],
                       ),
                     ),
-                    child: Icon(statusIcon, color: Colors.white, size: 20),
+                    child: Icon(statusIcon, color: Colors.white, size: 18),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,36 +736,36 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                         Text(
                           complaint.title,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           complaint.description,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             color: Colors.grey.shade600,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(10),
                                 color: statusColor.withOpacity(0.1),
                               ),
                               child: Text(
                                 complaint.status,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: statusColor,
                                 ),
@@ -706,7 +775,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                             Text(
                               _formatDate(complaint.createdAt),
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 11,
                                 color: Colors.grey.shade500,
                               ),
                             ),
@@ -718,7 +787,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                   Icon(
                     Icons.arrow_forward_ios,
                     color: Colors.grey.shade400,
-                    size: 16,
+                    size: 14,
                   ),
                 ],
               ),
