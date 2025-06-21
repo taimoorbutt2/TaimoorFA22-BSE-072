@@ -290,7 +290,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                                 children: [
                                   Expanded(
                                     child: _buildStatCard(
-                                      'Total Complaints',
+                                      ' Complaints',
                                       _complaints.length.toString(),
                                       Icons.report,
                                       [Colors.blue.shade400, Colors.blue.shade600],
