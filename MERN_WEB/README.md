@@ -1,6 +1,4 @@
-To enhance your **ArtisanMart README** with a clean and professional screenshot layout for your website, I'll create a dedicated **Screenshots** section that organizes the provided images (12 screenshots) in a visually appealing, GitHub Markdown-compatible format. Since you’ve requested to keep the README content unchanged and focus only on setting the layout for the website screenshots, I’ll add a new section below the existing README content without modifying any of the original text, features, tech stack, or other sections. The layout will be optimized for showcasing the responsive UI of ArtisanMart, aligning with its MERN stack and Tailwind CSS design, and will use the provided image URLs. The screenshots will be grouped by key features (e.g., Home, Product, Vendor Dashboard, Checkout, Admin Dashboard) and displayed in a table format to highlight both desktop and mobile views where applicable, ensuring clarity for portfolio reviewers.
 
----
 
 ## 🛍️ ArtisanMart - Multi-Vendor Marketplace
 
