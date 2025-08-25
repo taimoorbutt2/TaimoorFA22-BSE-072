@@ -59,6 +59,14 @@ app.get('/health', (req, res) => {
   })
 })
 
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.status(200).json({ 
+    message: 'Server is working!',
+    timestamp: new Date().toISOString()
+  })
+})
+
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/products', productRoutes)
@@ -98,10 +106,11 @@ app.use((err, req, res, next) => {
 })
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 ArtisanMart server running on port ${PORT}`)
   console.log(`📱 Frontend: ${process.env.CLIENT_URL || 'http://localhost:3000'}`)
   console.log(`🔗 Health check: http://localhost:${PORT}/health`)
+  console.log(`🌐 Server accessible on: http://0.0.0.0:${PORT}`)
 })
 
 // Graceful shutdown

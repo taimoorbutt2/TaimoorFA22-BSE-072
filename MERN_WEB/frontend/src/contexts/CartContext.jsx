@@ -1,110 +1,91 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import { useAuth } from './AuthContext'
 
 const CartContext = createContext()
-
-const initialState = {
-  items: [],
-  total: 0,
-  itemCount: 0
-}
 
 const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_ITEM':
-      const existingItem = state.items.find(
-        item => item._id === action.payload._id && item.vendorId === action.payload.vendorId
-      )
-      
+      const existingItem = state.items.find(item => item._id === action.payload._id)
       if (existingItem) {
-        const updatedItems = state.items.map(item =>
-          item._id === action.payload._id && item.vendorId === action.payload.vendorId
-            ? { ...item, quantity: item.quantity + action.payload.quantity }
+        return {
+          ...state,
+          items: state.items.map(item =>
+            item._id === action.payload._id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        }
+      }
+      return {
+        ...state,
+        items: [...state.items, { ...action.payload, quantity: 1 }]
+      }
+    
+    case 'REMOVE_ITEM':
+      return {
+        ...state,
+        items: state.items.filter(item => item._id !== action.payload)
+      }
+    
+    case 'UPDATE_QUANTITY':
+      return {
+        ...state,
+        items: state.items.map(item =>
+          item._id === action.payload._id
+            ? { ...item, quantity: action.payload.quantity }
             : item
         )
-        return calculateTotals(updatedItems)
-      } else {
-        const newItems = [...state.items, action.payload]
-        return calculateTotals(newItems)
       }
-
-    case 'REMOVE_ITEM':
-      const filteredItems = state.items.filter(
-        item => !(item._id === action.payload._id && item.vendorId === action.payload.vendorId)
-      )
-      return calculateTotals(filteredItems)
-
-    case 'UPDATE_QUANTITY':
-      const updatedItems = state.items.map(item =>
-        item._id === action.payload._id && item.vendorId === action.payload.vendorId
-          ? { ...item, quantity: action.payload.quantity }
-          : item
-      )
-      return calculateTotals(updatedItems)
-
+    
     case 'CLEAR_CART':
-      return initialState
-
-    case 'LOAD_CART':
-      return calculateTotals(action.payload)
-
+      return {
+        ...state,
+        items: []
+      }
+    
+    case 'UPDATE_TOTALS':
+      return {
+        ...state,
+        total: action.payload.total,
+        itemCount: action.payload.itemCount
+      }
+    
     default:
       return state
   }
 }
 
-const calculateTotals = (items) => {
-  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
-  return { items, total, itemCount }
-}
-
 export const CartProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, initialState)
-  const { isAuthenticated, user } = useAuth()
+  const [state, dispatch] = useReducer(cartReducer, {
+    items: [],
+    total: 0,
+    itemCount: 0
+  })
 
-  // Load cart from localStorage on mount
+  // Calculate total and item count whenever items change
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart')
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart)
-        dispatch({ type: 'LOAD_CART', payload: parsedCart })
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error)
-      }
-    }
-  }, [])
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(state.items))
-  }, [state.items])
-
-  const addToCart = (product, quantity = 1) => {
-    const cartItem = {
-      _id: product._id,
-      name: product.name,
-      price: product.price,
-      image: product.images?.[0] || product.image,
-      vendorId: product.vendorId,
-      vendorName: product.vendorName,
-      quantity,
-      maxQuantity: product.stock || 999
-    }
+    const total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0)
     
-    dispatch({ type: 'ADD_ITEM', payload: cartItem })
+    // Update state with calculated values
+    if (total !== state.total || itemCount !== state.itemCount) {
+      dispatch({ type: 'UPDATE_TOTALS', payload: { total, itemCount } })
+    }
+  }, [state.items, state.total, state.itemCount])
+
+  const addItem = (item) => {
+    dispatch({ type: 'ADD_ITEM', payload: item })
   }
 
-  const removeFromCart = (productId, vendorId) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: { _id: productId, vendorId } })
+  const removeItem = (itemId) => {
+    dispatch({ type: 'REMOVE_ITEM', payload: itemId })
   }
 
-  const updateQuantity = (productId, vendorId, quantity) => {
+  const updateQuantity = (itemId, quantity) => {
     if (quantity <= 0) {
-      removeFromCart(productId, vendorId)
+      dispatch({ type: 'REMOVE_ITEM', payload: itemId })
     } else {
-      dispatch({ type: 'UPDATE_QUANTITY', payload: { _id: productId, vendorId, quantity } })
+      dispatch({ type: 'UPDATE_QUANTITY', payload: { _id: itemId, quantity } })
     }
   }
 
@@ -112,30 +93,14 @@ export const CartProvider = ({ children }) => {
     dispatch({ type: 'CLEAR_CART' })
   }
 
-  const getVendorSubtotals = () => {
-    const vendorGroups = {}
-    state.items.forEach(item => {
-      if (!vendorGroups[item.vendorId]) {
-        vendorGroups[item.vendorId] = {
-          vendorId: item.vendorId,
-          vendorName: item.vendorName,
-          items: [],
-          subtotal: 0
-        }
-      }
-      vendorGroups[item.vendorId].items.push(item)
-      vendorGroups[item.vendorId].subtotal += item.price * item.quantity
-    })
-    return Object.values(vendorGroups)
-  }
-
   const value = {
-    ...state,
-    addToCart,
-    removeFromCart,
+    items: state.items,
+    total: state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+    itemCount: state.items.reduce((sum, item) => sum + item.quantity, 0),
+    addItem,
+    removeItem,
     updateQuantity,
-    clearCart,
-    getVendorSubtotals
+    clearCart
   }
 
   return (

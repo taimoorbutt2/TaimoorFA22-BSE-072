@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import { jwtDecode } from 'jwt-decode'
-import api from '../utils/api'
+import jwtDecode from 'jwt-decode'
 
 const AuthContext = createContext()
 
@@ -8,7 +7,7 @@ const initialState = {
   user: null,
   token: localStorage.getItem('token'),
   isAuthenticated: false,
-  loading: true,
+  loading: false,
   error: null
 }
 
@@ -69,15 +68,21 @@ export const AuthProvider = ({ children }) => {
             return
           }
 
-          // Token is valid, fetch user data
-          const response = await api.get('/auth/me')
+          // Token is valid, but we need to fetch fresh user data
+          // For now, use the decoded token data
+          const userData = {
+            _id: decoded.userId,
+            name: decoded.name,
+            email: decoded.email,
+            role: decoded.role
+          }
           dispatch({
             type: 'AUTH_SUCCESS',
-            payload: { user: response.data.user, token }
+            payload: { user: userData, token }
           })
         } catch (error) {
           localStorage.removeItem('token')
-          dispatch({ type: 'AUTH_FAILURE', payload: 'Authentication failed' })
+          dispatch({ type: 'AUTH_FAILURE', payload: 'Invalid token' })
         }
       } else {
         dispatch({ type: 'AUTH_FAILURE', payload: null })
@@ -90,38 +95,63 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     dispatch({ type: 'AUTH_START' })
     try {
-      const response = await api.post('/auth/login', { email, password })
-      const { token, user } = response.data
-      
-      localStorage.setItem('token', token)
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed')
+      }
+
+      localStorage.setItem('token', data.token)
       dispatch({
         type: 'AUTH_SUCCESS',
-        payload: { user, token }
+        payload: { user: data.user, token: data.token }
       })
+      
       return { success: true }
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed'
-      dispatch({ type: 'AUTH_FAILURE', payload: message })
-      return { success: false, error: message }
+      dispatch({ type: 'AUTH_FAILURE', payload: error.message })
+      throw error
     }
   }
 
   const register = async (userData) => {
     dispatch({ type: 'AUTH_START' })
     try {
-      const response = await api.post('/auth/register', userData)
-      const { token, user } = response.data
+      console.log('Frontend sending registration data:', JSON.stringify(userData, null, 2))
       
-      localStorage.setItem('token', token)
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      })
+
+      const data = await response.json()
+      console.log('Backend response:', { status: response.status, data: JSON.stringify(data, null, 2) })
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed')
+      }
+
+      localStorage.setItem('token', data.token)
       dispatch({
         type: 'AUTH_SUCCESS',
-        payload: { user, token }
+        payload: { user: data.user, token: data.token }
       })
+      
       return { success: true }
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed'
-      dispatch({ type: 'AUTH_FAILURE', payload: message })
-      return { success: false, error: message }
+      dispatch({ type: 'AUTH_FAILURE', payload: error.message })
+      throw error
     }
   }
 
@@ -130,21 +160,24 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGOUT' })
   }
 
-  const updateUser = (userData) => {
-    dispatch({ type: 'UPDATE_USER', payload: userData })
+  const updateProfile = (userData) => {
+    dispatch({ type: 'UPDATE_USER', payload: { ...state.user, ...userData } })
   }
 
-  const hasRole = (requiredRole) => {
-    if (!state.user) return false
-    return state.user.role === requiredRole || state.user.role === 'admin'
+  const hasRole = (role) => {
+    return state.user?.role === role
   }
 
   const value = {
-    ...state,
+    user: state.user,
+    token: state.token,
+    isAuthenticated: state.isAuthenticated,
+    loading: state.loading,
+    error: state.error,
     login,
     register,
     logout,
-    updateUser,
+    updateProfile,
     hasRole
   }
 
