@@ -1,115 +1,280 @@
-const express = require('express')
-const { body, validationResult, query } = require('express-validator')
-const Product = require('../models/Product')
-const { auth, optionalAuth, isVendor } = require('../middleware/auth')
+const express = require('express');
+const router = express.Router();
+const Product = require('../models/Product');
+const { uploadMultiple, convertUploadedFiles } = require('../middleware/base64Upload');
+const { auth } = require('../middleware/auth');
+const vendorAuth = require('../middleware/vendorAuth');
 
-const router = express.Router()
+// @route   POST /api/products
+// @desc    Create a new product
+// @access  Private (Vendor only)
+router.post('/', auth, vendorAuth, uploadMultiple('images', 5), convertUploadedFiles, async (req, res) => {
+  try {
+    // Debug: Log the incoming request data
+    console.log('Creating product - Request body:', req.body);
+    console.log('Creating product - Files:', req.files ? req.files.length : 0);
+    console.log('Creating product - User:', req.user);
+    console.log('Creating product - User role:', req.user?.role);
+    
+    const {
+      name,
+      description,
+      price,
+      category,
+      stock,
+      tags,
+      materials,
+      careInstructions,
+      dimensions,
+      weight
+    } = req.body;
+
+    // Get images as Base64 from uploaded files
+    const images = req.files ? req.files.map(file => file.base64) : [];
+
+    // Debug: Log the stock value being processed
+    console.log('Creating product with stock:', { 
+      originalStock: stock, 
+      parsedStock: parseInt(stock), 
+      finalStock: parseInt(stock) || 0 
+    })
+    
+    // Create new product
+    const product = new Product({
+      name,
+      description,
+      price: parseFloat(price),
+      category,
+      images,
+      vendor: req.user.id,
+      vendorName: req.user.name,
+      stock: parseInt(stock) || 0,
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+      materials: materials ? materials.split(',').map(material => material.trim()) : [],
+      careInstructions,
+      dimensions: (() => {
+        try {
+          if (!dimensions) return {};
+          if (typeof dimensions === 'string') {
+            return dimensions.trim() ? JSON.parse(dimensions) : {};
+          }
+          return dimensions;
+        } catch (error) {
+          console.error('Error parsing dimensions:', dimensions, error);
+          return {};
+        }
+      })(),
+      weight: (() => {
+        try {
+          if (!weight) return {};
+          if (typeof weight === 'string') {
+            return weight.trim() ? JSON.parse(weight) : {};
+          }
+          return weight;
+        } catch (error) {
+          console.error('Error parsing weight:', weight, error);
+          return {};
+        }
+      })()
+    });
+
+    const savedProduct = await product.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Product created successfully',
+      product: savedProduct
+    });
+
+  } catch (error) {
+    console.error('Error creating product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating product',
+      error: error.message
+    });
+  }
+});
 
 // @route   GET /api/products
 // @desc    Get all products with filtering and pagination
 // @access  Public
-router.get('/', [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-  query('category').optional().isString().withMessage('Category must be a string'),
-  query('minPrice').optional().isFloat({ min: 0 }).withMessage('Min price must be a positive number'),
-  query('maxPrice').optional().isFloat({ min: 0 }).withMessage('Max price must be a positive number'),
-  query('sort').optional().isIn(['price', '-price', 'rating', '-rating', 'createdAt', '-createdAt']).withMessage('Invalid sort parameter'),
-  query('search').optional().isString().withMessage('Search query must be a string')
-], async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array() 
-      })
-    }
-
     const {
       page = 1,
       limit = 12,
       category,
       minPrice,
       maxPrice,
-      sort = '-createdAt',
       search,
-      vendorId
-    } = req.query
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
 
     // Build filter object
-    const filter = { isActive: true }
+    const filter = { isActive: true };
     
-    if (category) filter.category = category
-    if (vendorId) filter.vendorId = vendorId
+    if (category) {
+      filter.category = category;
+    }
+    
     if (minPrice || maxPrice) {
-      filter.price = {}
-      if (minPrice) filter.price.$gte = parseFloat(minPrice)
-      if (maxPrice) filter.price.$lte = parseFloat(maxPrice)
+      filter.price = {};
+      if (minPrice) filter.price.$gte = parseFloat(minPrice);
+      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
     }
-
-    // Build search query
-    if (search) {
-      filter.$text = { $search: search }
-    }
-
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit)
     
-    // Build sort object
-    const sortObj = {}
-    if (sort.startsWith('-')) {
-      sortObj[sort.slice(1)] = -1
-    } else {
-      sortObj[sort] = 1
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } }
+      ];
     }
 
-    // Execute query
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    // Execute query with pagination
     const products = await Product.find(filter)
-      .sort(sortObj)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .populate('vendorId', 'shopName logo')
+      .sort(sort)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .populate('vendor', 'name shopName');
+
+    // Debug: Log the products being returned
+    console.log('Products being returned:', products.map(p => ({ 
+      id: p._id, 
+      name: p.name, 
+      stock: p.stock, 
+      stockType: typeof p.stock,
+      inStock: p.inStock,
+      inStockType: typeof p.inStock
+    })))
 
     // Get total count for pagination
-    const total = await Product.countDocuments(filter)
+    const total = await Product.countDocuments(filter);
 
     res.json({
+      success: true,
       products,
       pagination: {
         currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
+        totalPages: Math.ceil(total / limit),
         totalProducts: total,
-        hasNext: skip + products.length < total,
-        hasPrev: page > 1
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1
       }
-    })
+    });
+
   } catch (error) {
-    console.error('Get products error:', error)
-    res.status(500).json({ message: 'Server error fetching products' })
+    console.error('Error fetching products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching products',
+      error: error.message
+    });
   }
-})
+});
 
 // @route   GET /api/products/featured
 // @desc    Get featured products
 // @access  Public
 router.get('/featured', async (req, res) => {
   try {
-    const products = await Product.find({ 
+    const featuredProducts = await Product.find({ 
       isActive: true, 
       isFeatured: true 
     })
     .sort({ rating: -1, createdAt: -1 })
     .limit(8)
-    .populate('vendorId', 'shopName logo')
+    .populate('vendor', 'name shopName');
 
-    res.json({ products })
+    res.json({
+      success: true,
+      products: featuredProducts
+    });
+
   } catch (error) {
-    console.error('Get featured products error:', error)
-    res.status(500).json({ message: 'Server error fetching featured products' })
+    console.error('Error fetching featured products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching featured products',
+      error: error.message
+    });
   }
-})
+});
+
+// @route   GET /api/products/vendor/me
+// @desc    Get current vendor's products
+// @access  Private (Vendor only)
+router.get('/vendor/me', auth, vendorAuth, async (req, res) => {
+  try {
+    const products = await Product.find({ 
+      vendor: req.user.id, 
+      isActive: true 
+    })
+    .sort({ createdAt: -1 })
+    .populate('vendor', 'name shopName');
+
+    res.json({
+      success: true,
+      products
+    });
+
+  } catch (error) {
+    console.error('Error fetching vendor products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vendor products',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/products/vendor/:vendorId
+// @desc    Get products by vendor
+// @access  Public
+router.get('/vendor/:vendorId', async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+    const { page = 1, limit = 12 } = req.query;
+
+    const products = await Product.find({ 
+      vendor: vendorId, 
+      isActive: true 
+    })
+    .sort({ createdAt: -1 })
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    .populate('vendor', 'name shopName');
+
+    const total = await Product.countDocuments({ 
+      vendor: vendorId, 
+      isActive: true 
+    });
+
+    res.json({
+      success: true,
+      products,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalProducts: total
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching vendor products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vendor products',
+      error: error.message
+    });
+  }
+});
 
 // @route   GET /api/products/:id
 // @desc    Get single product by ID
@@ -117,256 +282,161 @@ router.get('/featured', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('vendorId', 'shopName logo description rating reviewCount')
-      .populate({
-        path: 'reviews',
-        options: { limit: 5, sort: { createdAt: -1 } }
-      })
+      .populate('vendor', 'name shopName profileImage');
 
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' })
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
     }
-
-    if (!product.isActive) {
-      return res.status(404).json({ message: 'Product not available' })
-    }
-
-    // Increment view count
-    product.viewCount += 1
-    await product.save()
-
-    res.json({ product })
-  } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Product not found' })
-    }
-    console.error('Get product error:', error)
-    res.status(500).json({ message: 'Server error fetching product' })
-  }
-})
-
-// @route   POST /api/products
-// @desc    Create a new product
-// @access  Private (Vendor only)
-router.post('/', [
-  auth,
-  isVendor,
-  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Product name must be between 2 and 100 characters'),
-  body('description').trim().isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
-  body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('category').isIn(['Jewelry', 'Home Decor', 'Art & Prints', 'Clothing', 'Pottery', 'Textiles', 'Other']).withMessage('Invalid category'),
-  body('stock').isInt({ min: 0 }).withMessage('Stock must be a non-negative integer'),
-  body('images').isArray({ min: 1 }).withMessage('At least one image is required')
-], async (req, res) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array() 
-      })
-    }
-
-    const {
-      name,
-      description,
-      price,
-      comparePrice,
-      category,
-      subcategory,
-      tags,
-      stock,
-      images,
-      dimensions,
-      materials,
-      colors,
-      sizes,
-      customOptions,
-      shipping,
-      productionTime,
-      returnPolicy
-    } = req.body
-
-    // Create product
-    const product = new Product({
-      name,
-      description,
-      price,
-      comparePrice,
-      category,
-      subcategory,
-      tags,
-      stock,
-      images,
-      dimensions,
-      materials,
-      colors,
-      sizes,
-      customOptions,
-      shipping,
-      productionTime,
-      returnPolicy,
-      vendorId: req.vendor._id,
-      vendorName: req.vendor.shopName
-    })
-
-    await product.save()
-
-    res.status(201).json({
-      message: 'Product created successfully',
-      product
-    })
-  } catch (error) {
-    console.error('Create product error:', error)
-    res.status(500).json({ message: 'Server error creating product' })
-  }
-})
-
-// @route   PUT /api/products/:id
-// @desc    Update a product
-// @access  Private (Vendor only)
-router.put('/:id', [
-  auth,
-  isVendor,
-  body('name').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Product name must be between 2 and 100 characters'),
-  body('description').optional().trim().isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
-  body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-  body('stock').optional().isInt({ min: 0 }).withMessage('Stock must be a non-negative integer')
-], async (req, res) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array() 
-      })
-    }
-
-    const product = await Product.findById(req.params.id)
-
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' })
-    }
-
-    // Check if vendor owns this product
-    if (product.vendorId.toString() !== req.vendor._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this product' })
-    }
-
-    // Update product
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true, runValidators: true }
-    )
 
     res.json({
+      success: true,
+      product
+    });
+
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching product',
+      error: error.message
+    });
+  }
+});
+
+// @route   PUT /api/products/:id
+// @desc    Update product
+// @access  Private (Vendor only - owner of product)
+router.put('/:id', auth, vendorAuth, uploadMultiple('images', 5), convertUploadedFiles, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    // Check if user owns this product
+    if (product.vendor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this product'
+      });
+    }
+
+    const updateData = { ...req.body };
+    
+    // Handle new images if uploaded
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file => file.base64);
+      
+      // Since we're using Base64, we don't need to delete old files
+      if (req.body.replaceImages === 'true') {
+        updateData.images = newImages;
+      } else {
+        // Add new images to existing ones
+        updateData.images = [...product.images, ...newImages];
+      }
+    }
+
+    // Parse numeric fields
+    if (updateData.price) updateData.price = parseFloat(updateData.price);
+    if (updateData.stock) updateData.stock = parseInt(updateData.stock);
+    if (updateData.tags) {
+      updateData.tags = updateData.tags.split(',').map(tag => tag.trim());
+    }
+    if (updateData.materials) {
+      updateData.materials = updateData.materials.split(',').map(material => material.trim());
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.json({
+      success: true,
       message: 'Product updated successfully',
       product: updatedProduct
-    })
+    });
+
   } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Product not found' })
-    }
-    console.error('Update product error:', error)
-    res.status(500).json({ message: 'Server error updating product' })
+    console.error('Error updating product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating product',
+      error: error.message
+    });
   }
-})
+});
 
 // @route   DELETE /api/products/:id
-// @desc    Delete a product
-// @access  Private (Vendor only)
-router.delete('/:id', [auth, isVendor], async (req, res) => {
+// @desc    Delete product
+// @access  Private (Vendor only - owner of product)
+router.delete('/:id', auth, vendorAuth, async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id)
-
+    const product = await Product.findById(req.params.id);
+    
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' })
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
     }
 
-    // Check if vendor owns this product
-    if (product.vendorId.toString() !== req.vendor._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to delete this product' })
+    // Check if user owns this product
+    if (product.vendor.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this product'
+      });
     }
 
-    // Soft delete - mark as inactive
-    product.isActive = false
-    await product.save()
+    // No need to delete files since we're using Base64 storage
 
-    res.json({ message: 'Product deleted successfully' })
+    // Delete product
+    await Product.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+
   } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Product not found' })
-    }
-    console.error('Delete product error:', error)
-    res.status(500).json({ message: 'Server error deleting product' })
+    console.error('Error deleting product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting product',
+      error: error.message
+    });
   }
-})
+});
 
 // @route   GET /api/products/categories
-// @desc    Get all product categories with counts
+// @desc    Get all product categories
 // @access  Public
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await Product.aggregate([
-      { $match: { isActive: true } },
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 },
-          avgPrice: { $avg: '$price' },
-          avgRating: { $avg: '$rating' }
-        }
-      },
-      { $sort: { count: -1 } }
-    ])
+    const categories = await Product.distinct('category');
+    
+    res.json({
+      success: true,
+      categories
+    });
 
-    res.json({ categories })
   } catch (error) {
-    console.error('Get categories error:', error)
-    res.status(500).json({ message: 'Server error fetching categories' })
+    console.error('Error fetching categories:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching categories',
+      error: error.message
+    });
   }
-})
+});
 
-// @route   GET /api/products/search/suggestions
-// @desc    Get search suggestions
-// @access  Public
-router.get('/search/suggestions', [
-  query('q').isString().isLength({ min: 2 }).withMessage('Search query must be at least 2 characters')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array() 
-      })
-    }
-
-    const { q } = req.query
-
-    const suggestions = await Product.aggregate([
-      { $match: { isActive: true } },
-      {
-        $search: {
-          autocomplete: {
-            query: q,
-            path: 'name',
-            fuzzy: { maxEdits: 1 }
-          }
-        }
-      },
-      { $limit: 5 },
-      { $project: { name: 1, category: 1, _id: 1 } }
-    ])
-
-    res.json({ suggestions })
-  } catch (error) {
-    console.error('Search suggestions error:', error)
-    res.status(500).json({ message: 'Server error fetching search suggestions' })
-  }
-})
-
-module.exports = router
+module.exports = router;

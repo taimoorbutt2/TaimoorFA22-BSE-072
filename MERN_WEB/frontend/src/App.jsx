@@ -15,7 +15,9 @@ import About from './pages/About'
 import Artisans from './pages/Artisans'
 import Cart from './pages/Cart'
 import Favorites from './pages/Favorites'
+import Profile from './pages/Profile'
 import Checkout from './pages/Checkout'
+import CheckoutSuccess from './pages/CheckoutSuccess'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import Dashboard from './pages/dashboard/Dashboard'
@@ -51,9 +53,19 @@ function App() {
                       <Checkout />
                     </ProtectedRoute>
                   } />
+                  <Route path="/checkout/success" element={
+                    <ProtectedRoute>
+                      <CheckoutSuccess />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/dashboard" element={
                     <ProtectedRoute>
                       <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
                     </ProtectedRoute>
                   } />
 

@@ -5,13 +5,23 @@ import ThreeDCarousel from '../components/3DCarousel'
 import { useFavorites } from '../contexts/FavoritesContext'
 import { useCart } from '../contexts/CartContext'
 import toast from 'react-hot-toast'
+import FollowButton from '../components/common/FollowButton'
 
 const Home = () => {
   const { addToFavorites, removeFromFavorites, isInFavorites } = useFavorites()
-  const { addItem: addToCart } = useCart()
+  const { addItem: addToCart, isInCart, getItemQuantity, items: cartItems, itemCount } = useCart()
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [apiError, setApiError] = useState(false)
+  const [featuredVendors, setFeaturedVendors] = useState([])
+  const [artisanLoading, setArtisanLoading] = useState(true)
+  const [showCartPreview, setShowCartPreview] = useState(false)
+
+         // Helper function to format vendor location display
+       const formatVendorLocation = (location) => {
+         if (!location) return 'Location not specified'
+         return location.address || 'Location not specified'
+       }
 
   // Sample products that will always be shown
   const sampleProducts = [
@@ -62,6 +72,30 @@ const Home = () => {
     }, 1000)
 
     return () => clearTimeout(timer)
+  }, [])
+
+  // Fetch featured vendors
+  useEffect(() => {
+    const fetchFeaturedVendors = async () => {
+      try {
+        setArtisanLoading(true)
+        const response = await fetch('/api/vendors/featured?limit=8')
+        if (response.ok) {
+          const data = await response.json()
+          setFeaturedVendors(data.vendors || [])
+        } else {
+          console.error('Failed to fetch featured vendors')
+          setFeaturedVendors([])
+        }
+      } catch (error) {
+        console.error('Error fetching featured vendors:', error)
+        setFeaturedVendors([])
+      } finally {
+        setArtisanLoading(false)
+      }
+    }
+
+    fetchFeaturedVendors()
   }, [])
 
   const categories = [
@@ -305,7 +339,7 @@ const Home = () => {
                           removeFromFavorites(product._id)
                           toast.success('Removed from favorites')
                         } else {
-                          addToFavorites(product)
+                          addToFavorites(product._id)
                           toast.success('Added to favorites!')
                         }
                       }}
@@ -386,12 +420,43 @@ const Home = () => {
                         onClick={(e) => {
                           e.preventDefault()
                           e.stopPropagation()
-                          addToCart(product)
-                          toast.success('Added to cart!')
+                          if (isInCart(product._id)) {
+                            toast.success('Already in cart!')
+                          } else {
+                            addToCart(product)
+                            toast.success(`${product.name} added to cart!`, {
+                              duration: 3000,
+                              icon: '🛒',
+                              style: {
+                                background: '#10B981',
+                                color: '#fff',
+                                borderRadius: '12px',
+                                padding: '16px',
+                                fontSize: '14px'
+                              }
+                            })
+                            // Show cart preview
+                            setShowCartPreview(true)
+                            setTimeout(() => setShowCartPreview(false), 3000)
+                          }
                         }}
-                        className="flex items-center justify-center w-12 h-10 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        className={`flex items-center justify-center w-12 h-10 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                          isInCart(product._id)
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                            : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+                        }`}
+                        title={isInCart(product._id) ? 'Already in cart' : 'Add to cart'}
                       >
-                        <FiShoppingBag className="w-4 h-4" />
+                        {isInCart(product._id) ? (
+                          <div className="relative">
+                            <FiShoppingBag className="w-4 h-4" />
+                            <span className="absolute -top-1 -right-1 bg-white text-blue-600 text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                              {getItemQuantity(product._id)}
+                            </span>
+                          </div>
+                        ) : (
+                          <FiShoppingBag className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -446,6 +511,201 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Featured Artisans Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 right-20 w-36 h-36 bg-gradient-to-r from-blue-200/20 to-indigo-200/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-44 h-44 bg-gradient-to-r from-emerald-200/20 to-teal-200/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/3 w-28 h-28 bg-gradient-to-r from-amber-200/20 to-orange-200/20 rounded-full blur-2xl animate-bounce"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 via-slate-700 to-gray-800 mb-6">
+              Featured Artisans
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Meet the talented creators behind our handmade treasures. Each artisan brings 
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 font-semibold"> unique skills and passion</span> to their craft.
+            </p>
+          </div>
+
+          {artisanLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="bg-white rounded-2xl p-6 animate-pulse shadow-lg">
+                  <div className="bg-gradient-to-br from-gray-200 to-gray-300 h-48 rounded-xl mb-4"></div>
+                  <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-4 rounded mb-3"></div>
+                  <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-4 rounded w-2/3 mb-4"></div>
+                  <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-8 rounded-lg"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {featuredVendors.map((vendor, index) => (
+                <div key={vendor._id} className="group relative bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-700 transform hover:scale-105 hover:-translate-y-2">
+                  {/* Vendor Image Container */}
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={vendor.bannerImage || vendor.profileImage}
+                      alt={vendor.shopName}
+                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop'
+                      }}
+                    />
+                    
+                    {/* Image overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    {/* Featured tag */}
+                    <div className="absolute top-4 left-4 px-3 py-1 bg-gradient-to-r from-orange-500/90 to-red-500/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full shadow-lg">
+                      Featured
+                    </div>
+                    
+                    {/* Globe icon */}
+                    <div className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
+                      <FiUsers className="w-4 h-4 text-gray-600" />
+                    </div>
+                  </div>
+                  
+                  {/* Vendor Content */}
+                  <div className="p-6 bg-gradient-to-br from-white to-gray-50">
+                    {/* Rating Section */}
+                    <div className="flex items-center mb-4">
+                      <div className="flex text-amber-400">
+                        {vendor.rating > 0 ? (
+                          [...Array(5)].map((_, i) => (
+                            <FiStar
+                              key={i}
+                              className={`w-4 h-4 ${i < vendor.rating ? 'fill-current' : ''}`}
+                            />
+                          ))
+                        ) : (
+                          [...Array(5)].map((_, i) => (
+                            <FiStar
+                              key={i}
+                              className="w-4 h-4 text-gray-300"
+                            />
+                          ))
+                        )}
+                      </div>
+                      <span className="ml-2 text-sm text-gray-600">
+                        {vendor.rating > 0 ? `${vendor.rating} (${vendor.totalReviews || 0} reviews)` : 'No reviews yet'}
+                      </span>
+                    </div>
+                    
+                    {/* Vendor Info */}
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{vendor.shopName}</h3>
+                      <p className="text-sm text-blue-600 font-medium">{vendor.user?.name}</p>
+                      {vendor.tagline && (
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{vendor.tagline}</p>
+                      )}
+                    </div>
+                    
+                    {/* Specialties */}
+                    {vendor.specialties && vendor.specialties.length > 0 && (
+                      <div className="mb-4">
+                        <span className="text-xs text-gray-500 font-medium">Specialties:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {vendor.specialties.slice(0, 2).map((specialty, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                            >
+                              {specialty}
+                            </span>
+                          ))}
+                          {vendor.specialties.length > 2 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                              +{vendor.specialties.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Location */}
+                    {vendor.location && (vendor.location.city || vendor.location.state || vendor.location.street) && (
+                      <div className="flex items-center text-gray-600 mb-4">
+                        <span className="text-sm">
+                          📍 {formatVendorLocation(vendor.location)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                      <div>
+                        <p className="text-lg font-bold text-gray-900">{vendor.totalProducts || 0}</p>
+                        <p className="text-xs text-gray-600">Products</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-gray-900">{vendor.totalFollowers || 0}</p>
+                        <p className="text-xs text-gray-600">Followers</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-gray-900">{vendor.totalReviews || 0}</p>
+                        <p className="text-xs text-gray-600">Reviews</p>
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2">
+                      <Link
+                        to={`/profile`}
+                        className="flex-1 text-center bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl group-hover:shadow-2xl"
+                      >
+                        <span className="flex items-center justify-center space-x-2">
+                          <span>View Profile</span>
+                          <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                        </span>
+                      </Link>
+                      
+                      <FollowButton 
+                        vendorId={vendor.user._id}
+                        initialFollowersCount={vendor.totalFollowers || 0}
+                        className="w-12 h-10 text-xs"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Hover border effect */}
+                  <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-gradient-to-r group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-indigo-500 transition-all duration-700 opacity-0 group-hover:opacity-100"></div>
+                  
+                  {/* Floating particles on hover */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div className="absolute top-6 left-6 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+                    <div className="absolute top-8 right-6 w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.3s' }}></div>
+                    <div className="absolute bottom-6 left-8 w-1 h-1 bg-indigo-400 rounded-full animate-ping" style={{ animationDelay: '0.6s' }}></div>
+                  </div>
+                  
+                  {/* Shine effect on hover */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* View All Artisans Button */}
+          <div className="text-center mt-12">
+            <Link 
+              to="/artisans" 
+              className="inline-flex items-center bg-gradient-to-r from-slate-700 via-slate-800 to-gray-900 hover:from-slate-800 hover:via-slate-900 hover:to-gray-800 text-white font-semibold px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl group"
+            >
+              <span className="flex items-center space-x-2">
+                <FiUsers className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                <span>View All Artisans</span>
+                <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-slate-800 via-slate-900 to-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -461,6 +721,30 @@ const Home = () => {
           </Link>
         </div>
       </section>
+
+      {/* Floating Cart Preview */}
+      {showCartPreview && itemCount > 0 && (
+        <div className="fixed bottom-6 right-6 z-50 animate-bounce">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-green-200 p-4 max-w-sm">
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-100 p-2 rounded-full">
+                <FiShoppingBag className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">Cart Updated!</h4>
+                <p className="text-sm text-gray-600">{itemCount} item{itemCount !== 1 ? 's' : ''} in cart</p>
+                <p className="text-xs text-green-600 font-medium">Total: ${cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}</p>
+              </div>
+              <Link 
+                to="/cart" 
+                className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                View
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

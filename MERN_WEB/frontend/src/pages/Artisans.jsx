@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { FaStar, FaMapMarkerAlt, FaHeart, FaEye, FaFilter, FaSearch, FaGlobe, FaInstagram, FaFacebook } from 'react-icons/fa'
+import { useAuth } from '../contexts/AuthContext'
+import CustomerMessaging from '../components/messaging/CustomerMessaging'
+import FollowButton from '../components/common/FollowButton'
 
 const Artisans = () => {
+  const { user } = useAuth()
   const [artisans, setArtisans] = useState([])
   const [filteredArtisans, setFilteredArtisans] = useState([])
   const [loading, setLoading] = useState(true)
@@ -9,165 +13,113 @@ const Artisans = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedLocation, setSelectedLocation] = useState('all')
   const [sortBy, setSortBy] = useState('rating')
+  const [selectedVendor, setSelectedVendor] = useState(null)
+  const [showMessaging, setShowMessaging] = useState(false)
 
-  // Enhanced dummy artisans data
-  const dummyArtisans = [
-    {
-      id: 1,
-      name: 'Sarah Chen',
-      shopName: 'Chen Creations',
-      category: 'Jewelry',
-      location: 'San Francisco, CA',
-      rating: 4.9,
-      reviewCount: 127,
-      productsCount: 45,
-      followers: 1200,
-      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
-      coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop',
-      bio: 'Master jewelry artisan with 15+ years of experience creating unique pieces that tell stories. Specializing in sustainable materials and traditional techniques.',
-      specialties: ['Handmade Necklaces', 'Custom Rings', 'Sustainable Materials'],
-      featured: true,
-      verified: true,
-      social: {
-        instagram: '@chencreations',
-        facebook: 'ChenCreationsSF'
-      }
-    },
-    {
-      id: 2,
-      name: 'Marcus Rodriguez',
-      shopName: 'Rodriguez Pottery',
-      category: 'Ceramics',
-      location: 'Austin, TX',
-      rating: 4.8,
-      reviewCount: 89,
-      productsCount: 32,
-      followers: 850,
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-      coverImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=400&fit=crop',
-      bio: 'Passionate potter creating functional art pieces that bring beauty to everyday life. Each piece is handcrafted with love and attention to detail.',
-      specialties: ['Functional Pottery', 'Decorative Vases', 'Custom Commissions'],
-      featured: true,
-      verified: true,
-      social: {
-        instagram: '@rodriguezpottery',
-        facebook: 'RodriguezPotteryATX'
-      }
-    },
-    {
-      id: 3,
-      name: 'Aisha Patel',
-      shopName: 'Patel Textiles',
-      category: 'Textiles',
-      location: 'New York, NY',
-      rating: 4.7,
-      reviewCount: 156,
-      productsCount: 67,
-      followers: 2100,
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-      coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop',
-      bio: 'Textile artist preserving traditional Indian weaving techniques while creating modern, sustainable home decor. Every piece tells a cultural story.',
-      specialties: ['Handwoven Rugs', 'Textile Wall Art', 'Sustainable Home Decor'],
-      featured: true,
-      verified: true,
-      social: {
-        instagram: '@pateltextiles',
-        facebook: 'PatelTextilesNYC'
-      }
-    },
-    {
-      id: 4,
-      name: 'David Kim',
-      shopName: 'Kim Woodworks',
-      category: 'Woodworking',
-      location: 'Portland, OR',
-      rating: 4.9,
-      reviewCount: 203,
-      productsCount: 28,
-      followers: 1800,
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-      coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop',
-      bio: 'Master woodworker crafting heirloom-quality furniture using sustainable hardwoods and traditional joinery techniques.',
-      specialties: ['Custom Furniture', 'Kitchen Utensils', 'Decorative Boxes'],
-      featured: false,
-      verified: true,
-      social: {
-        instagram: '@kimwoodworks',
-        facebook: 'KimWoodworksPDX'
-      }
-    },
-    {
-      id: 5,
-      name: 'Elena Vasquez',
-      shopName: 'Vasquez Glass',
-      category: 'Glass',
-      location: 'Seattle, WA',
-      rating: 4.6,
-      reviewCount: 78,
-      productsCount: 41,
-      followers: 950,
-      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-      coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop',
-      bio: 'Glass artist creating stunning pieces that capture light and color. Specializing in blown glass and fused glass techniques.',
-      specialties: ['Blown Glass Vases', 'Fused Glass Art', 'Custom Lighting'],
-      featured: false,
-      verified: true,
-      social: {
-        instagram: '@vasquezglass',
-        facebook: 'VasquezGlassSeattle'
-      }
-    },
-    {
-      id: 6,
-      name: 'James Wilson',
-      shopName: 'Wilson Metals',
-      category: 'Metalwork',
-      location: 'Denver, CO',
-      rating: 4.8,
-      reviewCount: 134,
-      productsCount: 23,
-      followers: 1100,
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-      coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop',
-      bio: 'Metal artist creating unique sculptures and functional art pieces. Combining traditional blacksmithing with modern design principles.',
-      specialties: ['Metal Sculptures', 'Custom Gates', 'Functional Art'],
-      featured: false,
-      verified: true,
-      social: {
-        instagram: '@wilsonmetals',
-        facebook: 'WilsonMetalsDenver'
+  // Real vendor data will be fetched from API
+  const [vendors, setVendors] = useState([])
+
+  // Dynamic categories and locations based on real vendor data
+  const [categories, setCategories] = useState([{ value: 'all', label: 'All Categories', count: 0 }])
+  const [locations, setLocations] = useState([{ value: 'all', label: 'All Locations', count: 0 }])
+
+         // Helper function to format location display
+       const formatLocation = (location) => {
+         if (!location) return 'Location not specified'
+         return location.address || 'Location not specified'
+       }
+
+  // Fetch real vendor data
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/vendors/featured?limit=50')
+        if (response.ok) {
+          const data = await response.json()
+          const vendorData = data.vendors || []
+          
+          // Transform vendor data to match the expected format
+          const transformedVendors = vendorData.map(vendor => ({
+            id: vendor.user._id, // Use User ID for chat system, not VendorProfile ID
+            name: vendor.user?.name || 'Unknown',
+            shopName: vendor.shopName || 'Unnamed Shop',
+            category: vendor.specialties?.[0] || 'General',
+            location: formatLocation(vendor.location),
+            rating: vendor.rating || 0,
+            reviewCount: vendor.totalReviews || 0,
+            productsCount: vendor.totalProducts || 0,
+            followers: vendor.totalFollowers || 0,
+            image: vendor.profileImage || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop',
+            coverImage: vendor.bannerImage || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop',
+            bio: vendor.bio || 'Passionate artisan creating unique handmade treasures.',
+            specialties: vendor.specialties || ['Handmade Items'],
+            featured: true,
+            verified: true,
+            social: {
+              instagram: '@artisanmart',
+              facebook: 'ArtisanMart'
+            }
+          }))
+          
+          setArtisans(transformedVendors)
+          setFilteredArtisans(transformedVendors)
+          
+          // Update categories and locations dynamically
+          updateFilters(transformedVendors)
+        } else {
+          console.error('Failed to fetch vendors')
+          setArtisans([])
+          setFilteredArtisans([])
+        }
+      } catch (error) {
+        console.error('Error fetching vendors:', error)
+        setArtisans([])
+        setFilteredArtisans([])
+      } finally {
+        setLoading(false)
       }
     }
-  ]
 
-  const categories = [
-    { value: 'all', label: 'All Categories', count: 6 },
-    { value: 'Jewelry', label: 'Jewelry', count: 1 },
-    { value: 'Ceramics', label: 'Ceramics', count: 1 },
-    { value: 'Textiles', label: 'Textiles', count: 1 },
-    { value: 'Woodworking', label: 'Woodworking', count: 1 },
-    { value: 'Glass', label: 'Glass', count: 1 },
-    { value: 'Metalwork', label: 'Metalwork', count: 1 }
-  ]
-
-  const locations = [
-    { value: 'all', label: 'All Locations', count: 6 },
-    { value: 'San Francisco, CA', label: 'San Francisco, CA', count: 1 },
-    { value: 'Austin, TX', label: 'Austin, TX', count: 1 },
-    { value: 'New York, NY', label: 'New York, NY', count: 1 },
-    { value: 'Portland, OR', label: 'Portland, OR', count: 1 },
-    { value: 'Seattle, WA', label: 'Seattle, WA', count: 1 },
-    { value: 'Denver, CO', label: 'Denver, CO', count: 1 }
-  ]
-
-  useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setArtisans(dummyArtisans)
-      setFilteredArtisans(dummyArtisans)
-      setLoading(false)
-    }, 1000)
+    fetchVendors()
   }, [])
+
+  // Update filters based on vendor data
+  const updateFilters = (vendorData) => {
+    // Extract unique categories from specialties
+    const categoryMap = new Map()
+    vendorData.forEach(vendor => {
+      vendor.specialties?.forEach(specialty => {
+        if (specialty && specialty.trim()) {
+          categoryMap.set(specialty, (categoryMap.get(specialty) || 0) + 1)
+        }
+      })
+    })
+    
+    const categoryOptions = [
+      { value: 'all', label: 'All Categories', count: vendorData.length }
+    ]
+    categoryMap.forEach((count, category) => {
+      categoryOptions.push({ value: category, label: category, count })
+    })
+    setCategories(categoryOptions)
+    
+    // Extract unique locations
+    const locationMap = new Map()
+    vendorData.forEach(vendor => {
+      if (vendor.location && vendor.location !== 'Location not specified') {
+        locationMap.set(vendor.location, (locationMap.get(vendor.location) || 0) + 1)
+      }
+    })
+    
+    const locationOptions = [
+      { value: 'all', label: 'All Locations', count: vendorData.length }
+    ]
+    locationMap.forEach((count, location) => {
+      locationOptions.push({ value: location, label: location, count })
+    })
+    setLocations(locationOptions)
+  }
 
   useEffect(() => {
     let filtered = [...artisans]
@@ -178,13 +130,18 @@ const Artisans = () => {
         artisan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         artisan.shopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         artisan.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        artisan.bio.toLowerCase().includes(searchQuery.toLowerCase())
+        artisan.bio.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        artisan.specialties.some(specialty => 
+          specialty.toLowerCase().includes(searchQuery.toLowerCase())
+        )
       )
     }
 
     // Category filter
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(artisan => artisan.category === selectedCategory)
+      filtered = filtered.filter(artisan => 
+        artisan.specialties.some(specialty => specialty === selectedCategory)
+      )
     }
 
     // Location filter
@@ -371,6 +328,9 @@ const Artisans = () => {
                         src={artisan.coverImage}
                         alt={artisan.shopName}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop'
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                       
@@ -399,6 +359,9 @@ const Artisans = () => {
                             src={artisan.image}
                             alt={artisan.name}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop'
+                            }}
                           />
                         </div>
                       </div>
@@ -426,10 +389,16 @@ const Artisans = () => {
                       {/* Rating */}
                       <div className="flex items-center mb-4">
                         <div className="flex mr-2">
-                          {renderStars(artisan.rating)}
+                          {artisan.rating > 0 ? renderStars(artisan.rating) : (
+                            <div className="flex text-gray-300">
+                              {[...Array(5)].map((_, i) => (
+                                <FaStar key={i} className="w-4 h-4" />
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <span className="text-gray-600 text-sm">
-                          {artisan.rating} ({artisan.reviewCount} reviews)
+                          {artisan.rating > 0 ? `${artisan.rating} (${artisan.reviewCount} reviews)` : 'No reviews yet'}
                         </span>
                       </div>
 
@@ -493,17 +462,34 @@ const Artisans = () => {
                             </a>
                           )}
                         </div>
-                        <button className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors duration-200">
+                        <a
+                          href={`/profile`}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors duration-200"
+                        >
                           View Profile
-                        </button>
+                        </a>
                       </div>
 
                       {/* Action Buttons */}
                       <div className="flex space-x-3">
-                        <button className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                          Follow
-                        </button>
-                        <button className="flex-1 border-2 border-gray-300 text-gray-700 hover:border-blue-500 hover:text-blue-600 py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105">
+                        <FollowButton 
+                          vendorId={artisan.id}
+                          initialFollowersCount={artisan.followers}
+                          className="flex-1 py-3 px-4 text-sm"
+                        />
+                        <button 
+                          onClick={() => {
+                            if (user?.role === 'vendor') {
+                              // For vendors, redirect to vendor dashboard
+                              window.location.href = '/vendor-dashboard?tab=messages';
+                            } else {
+                              // For customers, open messaging modal
+                              setSelectedVendor(artisan);
+                              setShowMessaging(true);
+                            }
+                          }}
+                          className="flex-1 border-2 border-gray-300 text-gray-700 hover:border-blue-500 hover:text-blue-600 py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105"
+                        >
                           Message
                         </button>
                       </div>
@@ -517,14 +503,26 @@ const Artisans = () => {
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">No Artisans Found</h3>
               <p className="text-gray-600 mb-6">
-                Try adjusting your search criteria or filters to find more artisans.
+                {artisans.length === 0 
+                  ? "No vendors have created profiles yet. Be the first to join our community!"
+                  : "Try adjusting your search criteria or filters to find more artisans."
+                }
               </p>
-              <button
-                onClick={clearFilters}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Clear All Filters
-              </button>
+              {artisans.length === 0 ? (
+                <a
+                  href="/register"
+                  className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  Become the First Vendor
+                </a>
+              ) : (
+                <button
+                  onClick={clearFilters}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  Clear All Filters
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -539,15 +537,29 @@ const Artisans = () => {
             Join our community of artisans and start selling your handmade creations today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-full hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105">
+            <a
+              href="/register"
+              className="inline-block px-8 py-4 bg-white text-blue-600 font-semibold rounded-full hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105"
+            >
               Apply Now
-            </button>
+            </a>
             <button className="px-8 py-4 border-2 border-white text-white font-semibold rounded-full hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105">
               Learn More
             </button>
           </div>
         </div>
       </section>
+
+      {/* Customer Messaging Modal */}
+      {showMessaging && selectedVendor && (
+        <CustomerMessaging
+          vendor={selectedVendor}
+          onClose={() => {
+            setShowMessaging(false);
+            setSelectedVendor(null);
+          }}
+        />
+      )}
     </div>
   )
 }

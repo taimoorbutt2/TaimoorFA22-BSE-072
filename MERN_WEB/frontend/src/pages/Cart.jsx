@@ -22,35 +22,12 @@ const Cart = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
 
-  // Add sample cart items if cart is empty (for demo purposes)
+  // Show real-time cart updates
   useEffect(() => {
-    if (cart.length === 0) {
-      const sampleItems = [
-        {
-          _id: 'demo1',
-          name: 'Handcrafted Silver Necklace',
-          price: 89.99,
-          category: 'Jewelry',
-          image: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400&h=300&fit=crop',
-          vendorName: 'SilverCraft Studio',
-          vendorId: 'vendor1',
-          quantity: 1
-        },
-        {
-          _id: 'demo2',
-          name: 'Ceramic Vase Collection',
-          price: 45.50,
-          category: 'Home Decor',
-          image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
-          vendorName: 'Earth & Fire Pottery',
-          vendorId: 'vendor2',
-          quantity: 2
-        }
-      ]
-      
-      sampleItems.forEach(item => addItem(item))
+    if (cart.length > 0) {
+      console.log('Cart updated:', cart.length, 'items')
     }
-  }, [cart.length, addItem])
+  }, [cart])
 
   // Group cart items by vendor
   const cartByVendor = cart.reduce((acc, item) => {
@@ -108,26 +85,34 @@ const Cart = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full text-center">
-          <div className="mx-auto h-24 w-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">
+          <div className="mx-auto h-24 w-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mb-6 animate-pulse">
             <FiShoppingBag className="w-12 h-12 text-gray-400" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
-          <p className="text-gray-600 mb-8">Looks like you haven't added any products to your cart yet.</p>
+          <p className="text-gray-600 mb-6">Looks like you haven't added any products to your cart yet.</p>
+          <p className="text-sm text-gray-500 mb-8">Add products from our featured collection or browse all categories!</p>
           <div className="space-y-3">
             <Link
               to="/products"
-              className="w-full bg-gradient-to-r from-primary-600 to-artisan-600 text-white px-6 py-3 rounded-lg hover:from-primary-700 hover:to-artisan-700 transition-all duration-200 inline-block"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 inline-block font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              Browse Products
+              Browse All Products
             </Link>
             <Link
               to="/"
-              className="w-full border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 inline-block"
+              className="w-full border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 inline-block font-medium"
             >
               Continue Shopping
             </Link>
+          </div>
+          
+          {/* Real-time cart status */}
+          <div className="mt-8 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+            <p className="text-xs text-gray-500">
+              Cart updates in real-time • Items persist across sessions
+            </p>
           </div>
         </div>
       </div>
@@ -139,8 +124,20 @@ const Cart = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-          <p className="text-gray-600 mt-2">You have {totalItems} item{totalItems !== 1 ? 's' : ''} in your cart</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+              <p className="text-gray-600 mt-2">You have {totalItems} item{totalItems !== 1 ? 's' : ''} in your cart</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg">
+                <span className="text-sm font-medium">Total: ${totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg">
+                <span className="text-sm font-medium">Items: {totalItems}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

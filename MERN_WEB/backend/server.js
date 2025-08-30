@@ -12,6 +12,8 @@ const cartRoutes = require('./routes/cart')
 const orderRoutes = require('./routes/orders')
 const reviewRoutes = require('./routes/reviews')
 const adminRoutes = require('./routes/admin')
+const imageRoutes = require('./routes/images')
+const stripeRoutes = require('./routes/stripe')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -30,12 +32,42 @@ app.use('/api/', limiter)
 // CORS configuration
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }))
+
+// Additional CORS headers for image requests
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.CLIENT_URL || 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+
+// Serve static files from uploads directory with CORS headers
+app.use('/uploads', (req, res, next) => {
+  // Set CORS headers for all uploads requests
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+}, express.static('uploads'))
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI, {
@@ -74,7 +106,12 @@ app.use('/api/vendors', vendorRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/reviews', reviewRoutes)
+app.use('/api/favorites', require('./routes/favorites'))
 app.use('/api/admin', adminRoutes)
+app.use('/api/images', imageRoutes)
+app.use('/api/chat', require('./routes/chat'))
+app.use('/api/follows', require('./routes/follows'))
+app.use('/api/stripe', stripeRoutes)
 
 // 404 handler
 app.use('*', (req, res) => {

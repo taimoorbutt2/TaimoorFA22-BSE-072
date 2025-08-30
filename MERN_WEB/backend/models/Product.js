@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
   name: {
@@ -10,37 +10,27 @@ const productSchema = new mongoose.Schema({
   description: {
     type: String,
     required: [true, 'Product description is required'],
-    maxlength: [2000, 'Description cannot exceed 2000 characters']
+    trim: true,
+    maxlength: [1000, 'Product description cannot exceed 1000 characters']
   },
   price: {
     type: Number,
-    required: [true, 'Price is required'],
-    min: [0, 'Price cannot be negative']
+    required: [true, 'Product price is required'],
+    min: [0, 'Price cannot be negative'],
+    max: [10000, 'Price cannot exceed $10,000']
   },
-  comparePrice: {
-    type: Number,
-    min: [0, 'Compare price cannot be negative']
+  category: {
+    type: String,
+    required: [true, 'Product category is required'],
+    enum: ['Jewelry', 'Home Decor', 'Art & Prints', 'Clothing', 'Pottery', 'Textiles', 'Bath & Body', 'Leather', 'Glass', 'Metalwork', 'Kitchen', 'Garden', 'Beauty', 'Accessories']
   },
   images: [{
     type: String,
-    required: [true, 'At least one image is required']
+    required: [true, 'At least one product image is required']
   }],
-  category: {
-    type: String,
-    required: [true, 'Category is required'],
-    enum: ['Jewelry', 'Home Decor', 'Art & Prints', 'Clothing', 'Pottery', 'Textiles', 'Other']
-  },
-  subcategory: {
-    type: String,
-    trim: true
-  },
-  tags: [{
-    type: String,
-    trim: true
-  }],
-  vendorId: {
+  vendor: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Vendor',
+    ref: 'User',
     required: [true, 'Vendor ID is required']
   },
   vendorName: {
@@ -49,10 +39,24 @@ const productSchema = new mongoose.Schema({
   },
   stock: {
     type: Number,
-    required: [true, 'Stock quantity is required'],
-    min: [0, 'Stock cannot be negative'],
-    default: 0
+    default: 0,
+    min: [0, 'Stock cannot be negative']
   },
+  rating: {
+    type: Number,
+    default: 0,
+    min: [0, 'Rating cannot be negative'],
+    max: [5, 'Rating cannot exceed 5']
+  },
+  reviewCount: {
+    type: Number,
+    default: 0,
+    min: [0, 'Review count cannot be negative']
+  },
+  tags: [{
+    type: String,
+    trim: true
+  }],
   isActive: {
     type: Boolean,
     default: true
@@ -65,110 +69,61 @@ const productSchema = new mongoose.Schema({
     length: Number,
     width: Number,
     height: Number,
-    weight: Number,
     unit: {
       type: String,
-      enum: ['cm', 'inch', 'mm', 'kg', 'lb', 'g', 'oz'],
-      default: 'cm'
+      enum: ['cm', 'inch', 'mm']
     }
   },
-  materials: [{
-    type: String,
-    trim: true
-  }],
-  colors: [{
-    type: String,
-    trim: true
-  }],
-  sizes: [{
-    type: String,
-    trim: true
-  }],
-  customOptions: [{
-    name: String,
-    options: [String],
-    required: Boolean,
-    additionalCost: Number
-  }],
-  shipping: {
+  weight: {
+    value: Number,
+    unit: {
+      type: String,
+      enum: ['g', 'kg', 'lb', 'oz']
+    }
+  },
+  materials: [String],
+  careInstructions: String,
+  shippingInfo: {
     weight: Number,
-    dimensions: {
-      length: Number,
-      width: Number,
-      height: Number
-    },
-    freeShipping: {
-      type: Boolean,
-      default: false
-    },
-    shippingCost: {
-      type: Number,
-      default: 0
-    }
+    dimensions: String,
+    shippingClass: String
   },
-  rating: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 5
+  createdAt: {
+    type: Date,
+    default: Date.now
   },
-  reviewCount: {
-    type: Number,
-    default: 0
-  },
-  soldCount: {
-    type: Number,
-    default: 0
-  },
-  viewCount: {
-    type: Number,
-    default: 0
-  },
-  isHandmade: {
-    type: Boolean,
-    default: true
-  },
-  productionTime: {
-    type: Number, // in days
-    default: 0
-  },
-  returnPolicy: {
-    type: String,
-    maxlength: [500, 'Return policy cannot exceed 500 characters']
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
-})
+});
 
-// Virtual for average rating
+// Update the updatedAt field on save
+productSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+// Create indexes for better query performance
+productSchema.index({ vendor: 1, isActive: 1 });
+productSchema.index({ category: 1, isActive: 1 });
+productSchema.index({ isFeatured: 1, isActive: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ rating: -1 });
+productSchema.index({ createdAt: -1 });
+
+// Virtual for average rating calculation
 productSchema.virtual('averageRating').get(function() {
-  return this.rating || 0
-})
+  return this.reviewCount > 0 ? (this.rating / this.reviewCount).toFixed(1) : 0;
+});
 
-// Virtual for discount percentage
-productSchema.virtual('discountPercentage').get(function() {
-  if (this.comparePrice && this.comparePrice > this.price) {
-    return Math.round(((this.comparePrice - this.price) / this.comparePrice) * 100)
-  }
-  return 0
-})
+// Virtual for inStock calculation
+productSchema.virtual('inStock').get(function() {
+  return this.stock > 0;
+});
 
-// Index for search functionality
-productSchema.index({ 
-  name: 'text', 
-  description: 'text', 
-  category: 'text',
-  tags: 'text',
-  materials: 'text'
-})
+// Ensure virtual fields are serialized
+productSchema.set('toJSON', { virtuals: true });
+productSchema.set('toObject', { virtuals: true });
 
-// Index for filtering and sorting
-productSchema.index({ category: 1, price: 1, rating: -1, createdAt: -1 })
-productSchema.index({ vendorId: 1, isActive: 1 })
-productSchema.index({ isFeatured: 1, rating: -1 })
-
-// Ensure virtuals are serialized
-productSchema.set('toJSON', { virtuals: true })
-productSchema.set('toObject', { virtuals: true })
-
-module.exports = mongoose.model('Product', productSchema)
+module.exports = mongoose.model('Product', productSchema);

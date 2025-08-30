@@ -49,6 +49,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  hasVendorProfile: {
+    type: Boolean,
+    default: false
+  },
+  vendorProfileId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'VendorProfile'
+  },
   lastLogin: {
     type: Date
   },

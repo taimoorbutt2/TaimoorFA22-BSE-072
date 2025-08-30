@@ -50,6 +50,12 @@ const cartReducer = (state, action) => {
         itemCount: action.payload.itemCount
       }
     
+    case 'LOAD_CART':
+      return {
+        ...state,
+        items: action.payload.items || []
+      }
+    
     default:
       return state
   }
@@ -61,6 +67,28 @@ export const CartProvider = ({ children }) => {
     total: 0,
     itemCount: 0
   })
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem('artisanMart_cart')
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart)
+        dispatch({ type: 'LOAD_CART', payload: { items: parsedCart } })
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error)
+    }
+  }, [])
+
+  // Save cart to localStorage whenever items change
+  useEffect(() => {
+    try {
+      localStorage.setItem('artisanMart_cart', JSON.stringify(state.items))
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error)
+    }
+  }, [state.items])
 
   // Calculate total and item count whenever items change
   useEffect(() => {
@@ -93,6 +121,17 @@ export const CartProvider = ({ children }) => {
     dispatch({ type: 'CLEAR_CART' })
   }
 
+  // Check if an item is already in the cart
+  const isInCart = (itemId) => {
+    return state.items.some(item => item._id === itemId)
+  }
+
+  // Get item quantity in cart
+  const getItemQuantity = (itemId) => {
+    const item = state.items.find(item => item._id === itemId)
+    return item ? item.quantity : 0
+  }
+
   const value = {
     items: state.items,
     total: state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
@@ -100,7 +139,9 @@ export const CartProvider = ({ children }) => {
     addItem,
     removeItem,
     updateQuantity,
-    clearCart
+    clearCart,
+    isInCart,
+    getItemQuantity
   }
 
   return (

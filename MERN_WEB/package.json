@@ -11,10 +11,18 @@
     "build": "cd frontend && npm run build",
     "start": "cd backend && npm start"
   },
-  "keywords": ["mern", "ecommerce", "marketplace", "artisans"],
+  "keywords": [
+    "mern",
+    "ecommerce",
+    "marketplace",
+    "artisans"
+  ],
   "author": "ArtisanMart Team",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "mongodb": "^6.18.0"
   }
 }

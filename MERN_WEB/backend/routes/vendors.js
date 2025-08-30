@@ -1,332 +1,573 @@
-const express = require('express')
-const { body, validationResult } = require('express-validator')
-const Vendor = require('../models/Vendor')
-const User = require('../models/User')
-const { auth, isVendor } = require('../middleware/auth')
+const express = require('express');
+const router = express.Router();
+const VendorProfile = require('../models/VendorProfile');
+const User = require('../models/User');
+const { uploadSingle, uploadProfileFields, convertUploadedFiles } = require('../middleware/base64Upload');
+const { auth } = require('../middleware/auth');
+const vendorAuth = require('../middleware/vendorAuth');
 
-const router = express.Router()
-
-// @route   GET /api/vendors
-// @desc    Get all approved vendors
-// @access  Public
-router.get('/', async (req, res) => {
-  try {
-    const vendors = await Vendor.find({ 
-      isApproved: true, 
-      isActive: true 
-    })
-    .select('shopName description logo category location rating reviewCount totalSales')
-    .sort({ rating: -1, totalSales: -1 })
-
-    res.json({ vendors })
-  } catch (error) {
-    console.error('Get vendors error:', error)
-    res.status(500).json({ message: 'Server error fetching vendors' })
-  }
-})
-
-// @route   GET /api/vendors/:id
-// @desc    Get vendor profile by ID
-// @access  Public
-router.get('/:id', async (req, res) => {
-  try {
-    const vendor = await Vendor.findById(req.params.id)
-      .populate('userId', 'name email avatar createdAt')
-
-    if (!vendor) {
-      return res.status(404).json({ message: 'Vendor not found' })
-    }
-
-    if (!vendor.isApproved || !vendor.isActive) {
-      return res.status(404).json({ message: 'Vendor profile not available' })
-    }
-
-    res.json({ vendor })
-  } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Vendor not found' })
-    }
-    console.error('Get vendor error:', error)
-    res.status(500).json({ message: 'Server error fetching vendor' })
-  }
-})
-
-// @route   POST /api/vendors
+// @route   POST /api/vendors/profile
 // @desc    Create vendor profile
-// @access  Private
-router.post('/', [
-  auth,
-  body('shopName').trim().isLength({ min: 2, max: 100 }).withMessage('Shop name must be between 2 and 100 characters'),
-  body('description').trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters'),
-  body('category').isIn(['Jewelry', 'Home Decor', 'Art & Prints', 'Clothing', 'Pottery', 'Textiles', 'Other']).withMessage('Invalid category')
-], async (req, res) => {
+// @access  Private (Vendor only)
+router.post('/profile', auth, vendorAuth, uploadProfileFields(), convertUploadedFiles, async (req, res) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array() 
-      })
-    }
-
-    // Check if user already has a vendor profile
-    const existingVendor = await Vendor.findOne({ userId: req.user._id })
-    if (existingVendor) {
-      return res.status(400).json({ message: 'Vendor profile already exists' })
-    }
-
-    // Check if user role is vendor
-    if (req.user.role !== 'vendor') {
-      return res.status(400).json({ message: 'User role must be vendor to create vendor profile' })
+    // Check if profile already exists
+    const existingProfile = await VendorProfile.findOne({ userId: req.user.id });
+    if (existingProfile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vendor profile already exists'
+      });
     }
 
     const {
       shopName,
-      description,
-      logo,
-      banner,
-      category,
-      tags,
+      bio,
+      tagline,
+      specialties,
       location,
+      experience,
+      education,
+      certifications,
+      socialLinks,
       contactInfo,
       businessHours,
-      policies,
-      commissionRate
-    } = req.body
+      policies
+    } = req.body;
+
+    // Get profile image as Base64
+    const profileImage = req.files?.profileImage?.[0]?.base64 || null;
+
+    if (!profileImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Profile image is required'
+      });
+    }
+
+    // Get banner image as Base64 (optional)
+    const bannerImage = req.files?.bannerImage?.[0]?.base64 || null;
+
+    // Helper function to safely parse JSON or return default
+    const safeJsonParse = (str, defaultValue = {}) => {
+      if (!str || str === '') return defaultValue;
+      try {
+        return JSON.parse(str);
+      } catch (error) {
+        console.log('JSON parse error for:', str, 'using default:', defaultValue);
+        return defaultValue;
+      }
+    };
 
     // Create vendor profile
-    const vendor = new Vendor({
-      userId: req.user._id,
-      shopName,
-      description,
-      logo,
-      banner,
-      category,
-      tags,
-      location,
-      contactInfo,
-      businessHours,
-      policies,
-      commissionRate: commissionRate || 0.10
-    })
+    const vendorProfile = new VendorProfile({
+      userId: req.user.id,
+      shopName: shopName || '',
+      bio: bio || '',
+      tagline: tagline || '',
+      specialties: specialties ? specialties.split(',').map(s => s.trim()).filter(s => s && s.length > 0) : [],
+      profileImage,
+      bannerImage,
+      location: safeJsonParse(location, {}),
+      experience: safeJsonParse(experience, {}),
+      education: safeJsonParse(education, {}),
+      certifications: safeJsonParse(certifications, []),
+      socialLinks: safeJsonParse(socialLinks, {}),
+      contactInfo: safeJsonParse(contactInfo, {}),
+      businessHours: safeJsonParse(businessHours, {}),
+      policies: safeJsonParse(policies, {})
+    });
 
-    await vendor.save()
+    const savedProfile = await vendorProfile.save();
+
+    // Update user with vendor status
+    await User.findByIdAndUpdate(req.user.id, {
+      hasVendorProfile: true,
+      vendorProfileId: savedProfile._id
+    });
 
     res.status(201).json({
-      message: 'Vendor profile created successfully. Pending approval.',
-      vendor
-    })
-  } catch (error) {
-    console.error('Create vendor error:', error)
-    res.status(500).json({ message: 'Server error creating vendor profile' })
-  }
-})
+      success: true,
+      message: 'Vendor profile created successfully',
+      profile: savedProfile
+    });
 
-// @route   PUT /api/vendors/:id
-// @desc    Update vendor profile
+  } catch (error) {
+    console.error('Error creating vendor profile:', error);
+    console.error('Request body:', req.body);
+    console.error('Request file:', req.file);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating vendor profile',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/vendors/profile/me
+// @desc    Get current vendor's profile
 // @access  Private (Vendor only)
-router.put('/:id', [
-  auth,
-  isVendor,
-  body('shopName').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Shop name must be between 2 and 100 characters'),
-  body('description').optional().trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters')
-], async (req, res) => {
+router.get('/profile/me', auth, vendorAuth, async (req, res) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
-        message: 'Validation failed',
-        errors: errors.array() 
-      })
+    const vendorProfile = await VendorProfile.findOne({ userId: req.user.id })
+      .populate('userId', 'name email');
+
+    if (!vendorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendor profile not found'
+      });
     }
 
-    const vendor = await Vendor.findById(req.params.id)
+    res.json({
+      success: true,
+      profile: vendorProfile
+    });
 
-    if (!vendor) {
-      return res.status(404).json({ message: 'Vendor profile not found' })
+  } catch (error) {
+    console.error('Error fetching vendor profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vendor profile',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/vendors/profile/:userId
+// @desc    Get vendor profile by user ID
+// @access  Public
+router.get('/profile/:userId', async (req, res) => {
+  try {
+    const vendorProfile = await VendorProfile.findOne({ userId: req.params.userId })
+      .populate('userId', 'name email');
+
+    if (!vendorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendor profile not found'
+      });
     }
 
-    // Check if vendor owns this profile
-    if (vendor.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this vendor profile' })
+    res.json({
+      success: true,
+      profile: vendorProfile
+    });
+
+  } catch (error) {
+    console.error('Error fetching vendor profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vendor profile',
+      error: error.message
+    });
+  }
+});
+
+// @route   PUT /api/vendors/profile/me
+// @desc    Update current vendor's profile
+// @access  Private (Vendor only)
+router.put('/profile/me', auth, vendorAuth, uploadProfileFields(), convertUploadedFiles, async (req, res) => {
+  try {
+    const vendorProfile = await VendorProfile.findOne({ userId: req.user.id });
+    
+    if (!vendorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendor profile not found'
+      });
     }
 
-    // Update vendor profile
-    const updatedVendor = await Vendor.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
+    const updateData = { ...req.body };
+
+    // Handle profile image update
+    if (req.files?.profileImage?.[0]) {
+      // Since we're using Base64, we don't need to delete old files
+      updateData.profileImage = req.files.profileImage[0].base64;
+    }
+
+    // Handle banner image update
+    if (req.files?.bannerImage?.[0]) {
+      updateData.bannerImage = req.files.bannerImage[0].base64;
+    }
+
+    // Helper function to safely parse JSON or return default
+    const safeJsonParse = (str, defaultValue = {}) => {
+      if (!str || str === '') return defaultValue;
+      try {
+        return JSON.parse(str);
+      } catch (error) {
+        console.log('JSON parse error for:', str, 'using default:', defaultValue);
+        return defaultValue;
+      }
+    };
+
+    // Parse complex fields
+    if (updateData.specialties) {
+      updateData.specialties = updateData.specialties.split(',').map(s => s.trim()).filter(s => s);
+    }
+    if (updateData.location) {
+      updateData.location = safeJsonParse(updateData.location, {});
+    }
+    if (updateData.experience) {
+      updateData.experience = safeJsonParse(updateData.experience, {});
+    }
+    if (updateData.education) {
+      updateData.education = safeJsonParse(updateData.education, {});
+    }
+    if (updateData.certifications) {
+      updateData.certifications = safeJsonParse(updateData.certifications, []);
+    }
+    if (updateData.socialLinks) {
+      updateData.socialLinks = safeJsonParse(updateData.socialLinks, {});
+    }
+    if (updateData.contactInfo) {
+      updateData.contactInfo = safeJsonParse(updateData.contactInfo, {});
+    }
+    if (updateData.businessHours) {
+      updateData.businessHours = safeJsonParse(updateData.businessHours, {});
+    }
+    if (updateData.policies) {
+      updateData.policies = safeJsonParse(updateData.policies, {});
+    }
+
+    const updatedProfile = await VendorProfile.findByIdAndUpdate(
+      vendorProfile._id,
+      updateData,
       { new: true, runValidators: true }
-    )
+    );
 
     res.json({
+      success: true,
       message: 'Vendor profile updated successfully',
-      vendor: updatedVendor
-    })
+      profile: updatedProfile
+    });
+
   } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Vendor profile not found' })
-    }
-    console.error('Update vendor error:', error)
-    res.status(500).json({ message: 'Server error updating vendor profile' })
+    console.error('Error updating vendor profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating vendor profile',
+      error: error.message
+    });
   }
-})
+});
 
-// @route   GET /api/vendors/:id/products
-// @desc    Get products by vendor
-// @access  Public
-router.get('/:id/products', async (req, res) => {
+// @route   PUT /api/vendors/profile/:userId
+// @desc    Update vendor profile
+// @access  Private (Vendor only - owner of profile)
+router.put('/profile/:userId', auth, vendorAuth, uploadProfileFields(), convertUploadedFiles, async (req, res) => {
   try {
-    const { page = 1, limit = 12 } = req.query
-    const skip = (parseInt(page) - 1) * parseInt(limit)
+    // Check if user owns this profile
+    if (req.params.userId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this profile'
+      });
+    }
 
-    const Product = require('../models/Product')
-    const products = await Product.find({ 
-      vendorId: req.params.id,
-      isActive: true 
-    })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(parseInt(limit))
+    const vendorProfile = await VendorProfile.findOne({ userId: req.params.userId });
+    
+    if (!vendorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendor profile not found'
+      });
+    }
 
-    const total = await Product.countDocuments({ 
-      vendorId: req.params.id,
-      isActive: true 
-    })
+    const updateData = { ...req.body };
+
+    // Handle profile image update
+    if (req.files?.profileImage?.[0]) {
+      // Since we're using Base64, we don't need to delete old files
+      updateData.profileImage = req.files.profileImage[0].base64;
+    }
+
+    // Handle banner image update
+    if (req.files?.bannerImage?.[0]) {
+      updateData.bannerImage = req.files.bannerImage[0].base64;
+    }
+
+    // Parse complex fields
+    if (updateData.specialties) {
+      updateData.specialties = updateData.specialties.split(',').map(s => s.trim());
+    }
+    if (updateData.location) {
+      updateData.location = JSON.parse(updateData.location);
+    }
+    if (updateData.experience) {
+      updateData.experience = JSON.parse(updateData.experience);
+    }
+    if (updateData.education) {
+      updateData.education = JSON.parse(updateData.education);
+    }
+    if (updateData.certifications) {
+      updateData.certifications = JSON.parse(updateData.certifications);
+    }
+    if (updateData.socialLinks) {
+      updateData.socialLinks = JSON.parse(updateData.socialLinks);
+    }
+    if (updateData.contactInfo) {
+      updateData.contactInfo = JSON.parse(updateData.contactInfo);
+    }
+    if (updateData.businessHours) {
+      updateData.businessHours = JSON.parse(updateData.businessHours);
+    }
+    if (updateData.policies) {
+      updateData.policies = JSON.parse(updateData.policies);
+    }
+
+    const updatedProfile = await VendorProfile.findByIdAndUpdate(
+      vendorProfile._id,
+      updateData,
+      { new: true, runValidators: true }
+    );
 
     res.json({
-      products,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
-        totalProducts: total,
-        hasNext: skip + products.length < total,
-        hasPrev: page > 1
-      }
-    })
+      success: true,
+      message: 'Vendor profile updated successfully',
+      profile: updatedProfile
+    });
+
   } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Vendor not found' })
-    }
-    console.error('Get vendor products error:', error)
-    res.status(500).json({ message: 'Server error fetching vendor products' })
+    console.error('Error updating vendor profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating vendor profile',
+      error: error.message
+    });
   }
-})
+});
 
-// @route   GET /api/vendors/:id/reviews
-// @desc    Get reviews for vendor
-// @access  Public
-router.get('/:id/reviews', async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query
-    const skip = (parseInt(page) - 1) * parseInt(limit)
 
-    const Review = require('../models/Review')
-    const Product = require('../models/Product')
-
-    // Get vendor's product IDs
-    const vendorProducts = await Product.find({ 
-      vendorId: req.params.id,
-      isActive: true 
-    }).select('_id')
-
-    const productIds = vendorProducts.map(p => p._id)
-
-    // Get reviews for vendor's products
-    const reviews = await Review.find({
-      productId: { $in: productIds },
-      isActive: true
-    })
-    .populate('productId', 'name images')
-    .populate('customerId', 'name avatar')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(parseInt(limit))
-
-    const total = await Review.countDocuments({
-      productId: { $in: productIds },
-      isActive: true
-    })
-
-    res.json({
-      reviews,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
-        totalReviews: total,
-        hasNext: skip + reviews.length < total,
-        hasPrev: page > 1
-      }
-    })
-  } catch (error) {
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Vendor not found' })
-    }
-    console.error('Get vendor reviews error:', error)
-    res.status(500).json({ message: 'Server error fetching vendor reviews' })
-  }
-})
 
 // @route   GET /api/vendors/search
-// @desc    Search vendors
+// @desc    Search vendors by name, specialty, or location
 // @access  Public
 router.get('/search', async (req, res) => {
   try {
-    const { q, category, location } = req.query
-    const filter = { isApproved: true, isActive: true }
+    const {
+      q = '',
+      specialty,
+      location,
+      page = 1,
+      limit = 12
+    } = req.query;
 
-    if (category) filter.category = category
+    // Build filter object
+    const filter = { status: 'active' };
+    
+    if (specialty) {
+      filter.specialties = specialty;
+    }
+    
     if (location) {
       filter.$or = [
         { 'location.city': { $regex: location, $options: 'i' } },
         { 'location.state': { $regex: location, $options: 'i' } },
         { 'location.country': { $regex: location, $options: 'i' } }
-      ]
+      ];
     }
-
+    
     if (q) {
       filter.$or = [
         { shopName: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-        { tags: { $in: [new RegExp(q, 'i')] } }
-      ]
+        { bio: { $regex: q, $options: 'i' } },
+        { tagline: { $regex: q, $options: 'i' } }
+      ];
     }
 
-    const vendors = await Vendor.find(filter)
-      .select('shopName description logo category location rating reviewCount totalSales')
-      .sort({ rating: -1, totalSales: -1 })
-      .limit(20)
+    // Execute query with pagination
+    const vendors = await VendorProfile.find(filter)
+      .sort({ 'stats.averageRating': -1, createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .populate('userId', 'name email');
 
-    res.json({ vendors })
+    // Get total count for pagination
+    const total = await VendorProfile.countDocuments(filter);
+
+    res.json({
+      success: true,
+      vendors,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalVendors: total,
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1
+      }
+    });
+
   } catch (error) {
-    console.error('Search vendors error:', error)
-    res.status(500).json({ message: 'Server error searching vendors' })
+    console.error('Error searching vendors:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error searching vendors',
+      error: error.message
+    });
   }
-})
+});
 
-// @route   GET /api/vendors/categories
-// @desc    Get vendor categories with counts
-// @access  Public
-router.get('/categories', async (req, res) => {
+// @route   GET /api/vendors/:userId/stats
+// @desc    Get vendor statistics
+// @access  Private (Vendor only)
+router.get('/:userId/stats', auth, vendorAuth, async (req, res) => {
   try {
-    const categories = await Vendor.aggregate([
-      { $match: { isApproved: true, isActive: true } },
+    // Check if user owns this profile
+    if (req.params.userId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view these stats'
+      });
+    }
+
+    const vendorProfile = await VendorProfile.findOne({ userId: req.params.userId });
+    
+    if (!vendorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendor profile not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      stats: vendorProfile.stats
+    });
+
+  } catch (error) {
+    console.error('Error fetching vendor stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vendor stats',
+      error: error.message
+    });
+  }
+});
+
+// @route   POST /api/vendors/:userId/verify
+// @desc    Mark vendor as verified (Admin only)
+// @access  Private (Admin only)
+router.post('/:userId/verify', auth, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
+    const vendorProfile = await VendorProfile.findOneAndUpdate(
+      { userId: req.params.userId },
+      { 
+        isVerified: true,
+        status: 'active'
+      },
+      { new: true }
+    );
+
+    if (!vendorProfile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendor profile not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vendor verified successfully',
+      profile: vendorProfile
+    });
+
+  } catch (error) {
+    console.error('Error verifying vendor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying vendor',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/vendors/featured
+// @desc    Get featured vendor profiles for home page
+// @access  Public
+router.get('/featured', async (req, res) => {
+  try {
+    const { limit = 8 } = req.query;
+    
+    // Get vendor profiles with user information
+    const featuredVendors = await VendorProfile.aggregate([
       {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 },
-          avgRating: { $avg: '$rating' }
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user'
         }
       },
-      { $sort: { count: -1 } }
-    ])
+      {
+        $unwind: '$user'
+      },
+      {
+        $match: {
+          'user.isActive': true,
+          'user.role': 'vendor'
+        }
+      },
+      {
+        $lookup: {
+          from: 'follows',
+          localField: 'user._id',
+          foreignField: 'following',
+          as: 'followers'
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          shopName: 1,
+          bio: 1,
+          tagline: 1,
+          specialties: 1,
+          profileImage: 1,
+          bannerImage: 1,
+          location: 1,
+          experience: 1,
+          rating: 1,
+          totalProducts: 1,
+          totalFollowers: { $size: '$followers' },
+          totalReviews: 1,
+          user: {
+            _id: 1,
+            name: 1,
+            email: 1
+          }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $limit: parseInt(limit)
+      }
+    ]);
 
-    res.json({ categories })
+    res.json({
+      success: true,
+      vendors: featuredVendors
+    });
+
   } catch (error) {
-    console.error('Get vendor categories error:', error)
-    res.status(500).json({ message: 'Server error fetching vendor categories' })
+    console.error('Error fetching featured vendors:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching featured vendors',
+      error: error.message
+    });
   }
-})
+});
 
-module.exports = router
+module.exports = router;

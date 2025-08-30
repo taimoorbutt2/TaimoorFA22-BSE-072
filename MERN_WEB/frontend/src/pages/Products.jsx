@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FiSearch, FiFilter, FiGrid, FiList, FiHeart, FiShoppingCart, FiStar, FiChevronDown, FiChevronUp, FiX } from 'react-icons/fi'
+import { useFavorites } from '../contexts/FavoritesContext'
 
 const Products = () => {
+  const { favorites, toggleFavorite, checkFavoriteStatus } = useFavorites()
   const [products, setProducts] = useState([])
   const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,150 +17,173 @@ const Products = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [productsPerPage] = useState(12)
 
-  // Enhanced dummy products with realistic data
-  const dummyProducts = [
-    {
-      _id: 'prod1',
-      name: 'Handcrafted Silver Filigree Necklace',
-      price: 89.99,
-      originalPrice: 129.99,
-      rating: 4.8,
-      reviewCount: 127,
-      vendorName: 'SilverCraft Studio',
-      category: 'Jewelry',
-      image: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=500&h=500&fit=crop',
-      description: 'Exquisite handcrafted silver necklace with intricate filigree work. Each piece is uniquely designed and crafted with attention to detail.',
-      tags: ['handmade', 'silver', 'filigree', 'necklace', 'artisan'],
-      inStock: true,
-      featured: true
-    },
-    {
-      _id: 'prod2',
-      name: 'Ceramic Vase Collection - Earth Tones',
-      price: 45.50,
-      originalPrice: 65.00,
-      rating: 4.6,
-      reviewCount: 89,
-      vendorName: 'Earth & Fire Pottery',
-      category: 'Home Decor',
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&h=500&fit=crop',
-      description: 'Beautiful hand-thrown ceramic vases in warm earth tones. Perfect for adding natural elegance to any room.',
-      tags: ['ceramic', 'handmade', 'vase', 'earth tones', 'pottery'],
-      inStock: true,
-      featured: false
-    },
-    {
-      _id: 'prod3',
-      name: 'Handwoven Cotton Scarf - Natural Dyes',
-      price: 32.00,
-      originalPrice: 45.00,
-      rating: 4.9,
-      reviewCount: 203,
-      vendorName: 'Textile Traditions',
-      category: 'Clothing',
-      image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=500&h=500&fit=crop',
-      description: 'Luxuriously soft handwoven cotton scarf dyed with natural, eco-friendly materials. Each piece is unique.',
-      tags: ['handwoven', 'cotton', 'natural dyes', 'scarf', 'eco-friendly'],
-      inStock: true,
-      featured: true
-    },
-    {
-      _id: 'prod4',
-      name: 'Wooden Wall Art - Geometric Patterns',
-      price: 125.00,
-      originalPrice: 150.00,
-      rating: 4.7,
-      reviewCount: 67,
-      vendorName: 'Timber Creations',
-      category: 'Art & Prints',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=500&fit=crop',
-      description: 'Stunning wooden wall art featuring intricate geometric patterns. Hand-carved from sustainable hardwood.',
-      tags: ['wooden', 'wall art', 'geometric', 'hand-carved', 'sustainable'],
-      inStock: true,
-      featured: true
-    },
-    {
-      _id: 'prod5',
-      name: 'Handmade Soap Collection - Lavender & Honey',
-      price: 18.99,
-      originalPrice: 24.99,
-      rating: 4.5,
-      reviewCount: 156,
-      vendorName: 'Natural Essence',
-      category: 'Bath & Body',
-      image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500&h=500&fit=crop',
-      description: 'Luxurious handmade soaps crafted with natural ingredients including lavender and honey. Gentle on skin.',
-      tags: ['handmade', 'soap', 'natural', 'lavender', 'honey'],
-      inStock: true,
-      featured: false
-    },
-    {
-      _id: 'prod6',
-      name: 'Leather Wallet - Hand-Stitched',
-      price: 75.00,
-      originalPrice: 95.00,
-      rating: 4.8,
-      reviewCount: 94,
-      vendorName: 'Leather Craft Co.',
-      category: 'Accessories',
-      image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=500&h=500&fit=crop',
-      description: 'Premium leather wallet with hand-stitched details. Made from full-grain leather for durability and style.',
-      tags: ['leather', 'wallet', 'hand-stitched', 'premium', 'durable'],
-      inStock: true,
-      featured: true
-    },
-    {
-      _id: 'prod7',
-      name: 'Glass Blown Vase - Ocean Blue',
-      price: 180.00,
-      originalPrice: 220.00,
-      rating: 4.9,
-      reviewCount: 45,
-      vendorName: 'Glass Art Studio',
-      category: 'Home Decor',
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&h=500&fit=crop',
-      description: 'Stunning hand-blown glass vase in mesmerizing ocean blue. Each piece is unique and handcrafted.',
-      tags: ['glass', 'hand-blown', 'vase', 'ocean blue', 'unique'],
-      inStock: false,
-      featured: true
-    },
-    {
-      _id: 'prod8',
-      name: 'Metal Wall Sculpture - Abstract Design',
-      price: 95.00,
-      originalPrice: 120.00,
-      rating: 4.6,
-      reviewCount: 78,
-      vendorName: 'Metal Works',
-      category: 'Art & Prints',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=500&fit=crop',
-      description: 'Contemporary metal wall sculpture featuring abstract geometric designs. Perfect modern art piece.',
-      tags: ['metal', 'sculpture', 'abstract', 'modern', 'wall art'],
-      inStock: true,
-      featured: false
-    }
-  ]
+  
 
-  const categories = [
-    { id: 'all', name: 'All Categories', count: dummyProducts.length },
-    { id: 'jewelry', name: 'Jewelry', count: dummyProducts.filter(p => p.category === 'Jewelry').length },
-    { id: 'home-decor', name: 'Home Decor', count: dummyProducts.filter(p => p.category === 'Home Decor').length },
-    { id: 'clothing', name: 'Clothing', count: dummyProducts.filter(p => p.category === 'Clothing').length },
-    { id: 'art-prints', name: 'Art & Prints', count: dummyProducts.filter(p => p.category === 'Art & Prints').length },
-    { id: 'bath-body', name: 'Bath & Body', count: dummyProducts.filter(p => p.category === 'Bath & Body').length },
-    { id: 'accessories', name: 'Accessories', count: dummyProducts.filter(p => p.category === 'Accessories').length }
-  ]
+  const [categories, setCategories] = useState([
+    { id: 'all', name: 'All Categories', count: 0 }
+  ])
 
+  // Fetch real products from API
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setProducts(dummyProducts)
-      setFilteredProducts(dummyProducts)
-      setLoading(false)
-    }, 1000)
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/products?limit=100')
+        if (response.ok) {
+          const data = await response.json()
+          const fetchedProducts = data.products || []
+          
+          // Debug: Log the raw product data to see stock values and ratings
+          console.log('Raw products from API:', fetchedProducts.map(p => ({ 
+            id: p._id, 
+            name: p.name, 
+            stock: p.stock, 
+            stockType: typeof p.stock,
+            inStockCalc: parseInt(p.stock) > 0,
+            rating: p.rating,
+            reviewCount: p.reviewCount
+          })))
+          
+          // Transform products to match expected format
+          const transformedProducts = fetchedProducts.map(product => ({
+            _id: product._id,
+            name: product.name,
+            price: product.price,
+            originalPrice: product.price * 1.2, // Add some markup for display
+            rating: product.rating || 0,
+            reviewCount: product.reviewCount || 0,
+            vendorName: product.vendorName || 'Unknown Vendor',
+            category: product.category || 'General',
+            image: product.images?.[0] || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500&h=500&fit=crop',
+            description: product.description || 'Beautiful handmade product',
+            tags: product.tags || ['handmade', 'artisan'],
+            inStock: parseInt(product.stock) > 0,
+            featured: product.featured || false
+          }))
+          
+          setProducts(transformedProducts)
+          setFilteredProducts(transformedProducts)
+          
+          // Update categories dynamically
+          updateCategories(transformedProducts)
+        } else {
+          console.error('Failed to fetch products')
+          // If no products in database, show sample products
+          const sampleProducts = [
+            {
+              _id: 'sample1',
+              name: 'Handcrafted Silver Filigree Necklace',
+              price: 89.99,
+              originalPrice: 129.99,
+              rating: 4.8,
+              reviewCount: 127,
+              vendorName: 'SilverCraft Studio',
+              category: 'Jewelry',
+              image: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=500&h=500&fit=crop',
+              description: 'Exquisite handcrafted silver necklace with intricate filigree work. Each piece is uniquely designed and crafted with attention to detail.',
+              tags: ['handmade', 'silver', 'filigree', 'necklace', 'artisan'],
+              inStock: true,
+              featured: true
+            },
+            {
+              _id: 'sample2',
+              name: 'Ceramic Vase Collection - Earth Tones',
+              price: 45.50,
+              originalPrice: 65.00,
+              rating: 4.6,
+              reviewCount: 89,
+              vendorName: 'Earth & Fire Pottery',
+              category: 'Home Decor',
+              image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&h=500&fit=crop',
+              description: 'Beautiful hand-thrown ceramic vases in warm earth tones. Perfect for adding natural elegance to any room.',
+              tags: ['ceramic', 'handmade', 'vase', 'earth tones', 'pottery'],
+              inStock: true,
+              featured: false
+            }
+          ]
+          setProducts(sampleProducts)
+          setFilteredProducts(sampleProducts)
+          updateCategories(sampleProducts)
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error)
+        // If API call fails, show sample products
+        const sampleProducts = [
+          {
+            _id: 'sample1',
+            name: 'Handcrafted Silver Filigree Necklace',
+            price: 89.99,
+            originalPrice: 129.99,
+            rating: 4.8,
+            reviewCount: 127,
+            vendorName: 'SilverCraft Studio',
+            category: 'Jewelry',
+            image: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=500&h=500&fit=crop',
+            description: 'Exquisite handcrafted silver necklace with intricate filigree work. Each piece is uniquely designed and crafted with attention to detail.',
+            tags: ['handmade', 'silver', 'filigree', 'necklace', 'artisan'],
+            inStock: true,
+            featured: true
+          },
+          {
+            _id: 'sample2',
+            name: 'Ceramic Vase Collection - Earth Tones',
+            price: 45.50,
+            originalPrice: 65.00,
+            rating: 4.6,
+            reviewCount: 89,
+            vendorName: 'Earth & Fire Pottery',
+            category: 'Home Decor',
+            image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&h=500&fit=crop',
+            description: 'Beautiful hand-thrown ceramic vases in warm earth tones. Perfect for adding natural elegance to any room.',
+            tags: ['ceramic', 'handmade', 'vase', 'earth tones', 'pottery'],
+            inStock: true,
+            featured: false
+          }
+        ]
+        setProducts(sampleProducts)
+        setFilteredProducts(sampleProducts)
+        updateCategories(sampleProducts)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-    return () => clearTimeout(timer)
+    fetchProducts()
   }, [])
+
+  // Check if a product is in favorites
+  const isProductFavorited = (productId) => {
+    return favorites.some(fav => fav.product._id === productId)
+  }
+
+  // Update categories based on real product data
+  const updateCategories = (productData) => {
+    const categoryMap = new Map()
+    productData.forEach(product => {
+      if (product.category && product.category.trim()) {
+        categoryMap.set(product.category, (categoryMap.get(product.category) || 0) + 1)
+      }
+    })
+    
+    const categoryOptions = [
+      { id: 'all', name: 'All Categories', count: productData.length }
+    ]
+    
+    categoryMap.forEach((count, category) => {
+      categoryOptions.push({ 
+        id: category.toLowerCase().replace(/\s+/g, '-'), 
+        name: category, 
+        count 
+      })
+    })
+    
+    setCategories(categoryOptions)
+  }
+
+  // Refresh products function
+  const refreshProducts = () => {
+    window.location.reload()
+  }
 
   // Filter and search products
   useEffect(() => {
@@ -166,15 +191,10 @@ const Products = () => {
 
     // Category filter
     if (selectedCategory !== 'all') {
-      const categoryMap = {
-        'jewelry': 'Jewelry',
-        'home-decor': 'Home Decor',
-        'clothing': 'Clothing',
-        'art-prints': 'Art & Prints',
-        'bath-body': 'Bath & Body',
-        'accessories': 'Accessories'
+      const selectedCategoryName = categories.find(cat => cat.id === selectedCategory)?.name
+      if (selectedCategoryName) {
+        filtered = filtered.filter(product => product.category === selectedCategoryName)
       }
-      filtered = filtered.filter(product => product.category === categoryMap[selectedCategory])
     }
 
     // Price filter
@@ -223,7 +243,11 @@ const Products = () => {
   }
 
   const ProductCard = ({ product }) => (
-    <div className="group relative bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-700 transform hover:scale-105 hover:-translate-y-2">
+    <Link 
+      to={`/products/${product._id}`}
+      className="group relative bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-700 transform hover:scale-105 hover:-translate-y-2 block cursor-pointer"
+      onClick={() => console.log('Navigating to product ID:', product._id)}
+    >
       {/* Product Image Container */}
       <div className="relative overflow-hidden">
         <img
@@ -238,9 +262,20 @@ const Products = () => {
         {/* Image overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         
-        {/* Heart button */}
-        <button className="absolute top-4 right-4 p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 transform hover:scale-110 group-hover:bg-red-50">
-          <FiHeart className="w-5 h-5 text-gray-600 group-hover:text-red-500 transition-colors duration-300" />
+        {/* Heart button - positioned to not interfere with card click */}
+        <button 
+          className="absolute top-4 right-4 p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 transform hover:scale-110 group-hover:bg-red-50 z-10"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            toggleFavorite(product._id)
+          }}
+        >
+          {isProductFavorited(product._id) ? (
+            <FiHeart className="w-5 h-5 text-red-500 fill-current" />
+          ) : (
+            <FiHeart className="w-5 h-5 text-gray-600 group-hover:text-red-500 transition-colors duration-300" />
+          )}
         </button>
         
         {/* Category badge */}
@@ -267,17 +302,30 @@ const Products = () => {
       <div className="p-6 bg-gradient-to-br from-white to-gray-50">
         {/* Rating Section */}
         <div className="flex items-center mb-3">
-          <div className="flex text-amber-400">
-            {[...Array(5)].map((_, i) => (
-              <FiStar
-                key={i}
-                className={`w-4 h-4 ${i < product.rating ? 'fill-current' : ''}`}
-              />
-            ))}
-          </div>
-          <span className="text-sm text-gray-500 ml-2 font-medium">
-            ({product.reviewCount})
-          </span>
+          {product.rating > 0 ? (
+            <>
+              <div className="flex text-amber-400">
+                {[...Array(5)].map((_, i) => (
+                  <FiStar
+                    key={i}
+                    className={`w-4 h-4 ${i < product.rating ? 'fill-current' : ''}`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-gray-500 ml-2 font-medium">
+                ({product.reviewCount})
+              </span>
+            </>
+          ) : (
+            <div className="flex items-center text-gray-400">
+              {[...Array(5)].map((_, i) => (
+                <FiStar key={i} className="w-4 h-4" />
+              ))}
+              <span className="text-sm text-gray-500 ml-2 font-medium">
+                No reviews yet
+              </span>
+            </div>
+          )}
         </div>
         
         {/* Product Title */}
@@ -312,26 +360,27 @@ const Products = () => {
           </div>
         </div>
         
-        {/* Action Buttons */}
-        <div className="flex space-x-2">
-          <Link
-            to={`/products/${product._id}`}
-            className="flex-1 text-center bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl group-hover:shadow-2xl"
-          >
-            <span className="flex items-center justify-center space-x-2">
-              <span>View Details</span>
-              <FiChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" />
-            </span>
-          </Link>
+        {/* Quick Action Hints */}
+        <div className="text-center">
+          <div className="inline-flex items-center space-x-2 text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors duration-300">
+            <span>Click to view details</span>
+            <FiChevronDown className="w-4 h-4 group-hover:translate-y-1 transition-transform duration-300" />
+          </div>
           
-          <button className="p-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-            <FiShoppingCart className="w-5 h-5" />
-          </button>
+          {/* Hover hint */}
+          <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="inline-flex items-center space-x-1 text-xs text-gray-500">
+              <span>🖱️ Click anywhere on card</span>
+            </div>
+          </div>
         </div>
       </div>
       
       {/* Hover border effect */}
       <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-gradient-to-r group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-indigo-500 transition-all duration-700 opacity-0 group-hover:opacity-100"></div>
+      
+      {/* Click indicator */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
       
       {/* Floating particles on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
@@ -342,7 +391,7 @@ const Products = () => {
       
       {/* Shine effect on hover */}
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
-    </div>
+    </Link>
   )
 
   if (loading) {
@@ -385,10 +434,37 @@ const Products = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-800 via-slate-700 to-gray-800 mb-6">
             Discover Our Products
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-6">
             Explore our curated collection of handmade treasures. Each product tells a unique story of 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 font-semibold"> craftsmanship and creativity</span>.
           </p>
+          {products.length > 0 && (
+            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+              <span>📦 {products.length} products available</span>
+              <span>•</span>
+              <span>🔄 Real-time data from vendors</span>
+              <span>•</span>
+              <button
+                onClick={refreshProducts}
+                className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
+              >
+                Refresh Products
+              </button>
+            </div>
+          )}
+          
+          {/* Debug Info */}
+          {products.length > 0 && (
+            <div className="text-center text-xs text-gray-400 mt-2">
+              {products.some(p => p._id.startsWith('sample')) ? (
+                <span>Showing sample products (no real products in database yet)</span>
+              ) : (
+                <span>Showing real products from database</span>
+              )}
+            </div>
+          )}
+          
+
         </div>
 
         {/* Search and Filter Section */}
@@ -475,12 +551,21 @@ const Products = () => {
 
         {/* Results Summary */}
         <div className="flex items-center justify-between mb-8">
-          <p className="text-gray-600">
-            Showing {filteredProducts.length} of {products.length} products
-          </p>
-          <p className="text-gray-600">
-            Page {currentPage} of {totalPages}
-          </p>
+          <div className="flex items-center space-x-4">
+            <p className="text-gray-600">
+              Showing {filteredProducts.length} of {products.length} products
+            </p>
+            {products.length === 0 && (
+              <span className="text-amber-600 text-sm bg-amber-50 px-3 py-1 rounded-full">
+                🚀 No products yet - be the first vendor!
+              </span>
+            )}
+          </div>
+          {totalPages > 1 && (
+            <p className="text-gray-600">
+              Page {currentPage} of {totalPages}
+            </p>
+          )}
         </div>
 
         {/* Products Grid */}
@@ -532,19 +617,45 @@ const Products = () => {
         {filteredProducts.length === 0 && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">No products found</h3>
-            <p className="text-gray-600 mb-6">Try adjusting your search criteria or browse all categories</p>
-            <button
-              onClick={() => {
-                setSearchQuery('')
-                setSelectedCategory('all')
-                setPriceRange([0, 500])
-                setSortBy('featured')
-              }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-            >
-              Clear Filters
-            </button>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              {products.length === 0 ? 'No products available yet' : 'No products found'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {products.length === 0 
+                ? 'Be the first to add products to our marketplace! Vendors can create products in their dashboard.'
+                : 'Try adjusting your search criteria or browse all categories'
+              }
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {products.length === 0 ? (
+                <>
+                  <button
+                    onClick={refreshProducts}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+                  >
+                    Refresh Page
+                  </button>
+                  <Link
+                    to="/register"
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
+                  >
+                    Become a Vendor
+                  </Link>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setSearchQuery('')
+                    setSelectedCategory('all')
+                    setPriceRange([0, 500])
+                    setSortBy('featured')
+                  }}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

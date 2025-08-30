@@ -10,7 +10,7 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
   const { itemCount } = useCart()
-  const { getFavoritesCount } = useFavorites()
+  const { favoritesCount } = useFavorites()
 
   const handleLogout = () => {
     logout()
@@ -75,9 +75,9 @@ const Navbar = () => {
               className="relative p-2 text-gray-300 hover:text-white hover:bg-slate-700 rounded-lg transition-all duration-200 transform hover:scale-110"
             >
               <FiHeart className="h-6 w-6" />
-              {getFavoritesCount() > 0 && (
+              {favoritesCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
-                  {getFavoritesCount()}
+                  {favoritesCount}
                 </span>
               )}
             </Link>
@@ -106,6 +106,19 @@ const Navbar = () => {
                 
                 {/* Dropdown Menu */}
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  {/* Profile Header */}
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                        <FiUser className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                        <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <Link 
                     to="/dashboard" 
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -200,7 +213,7 @@ const Navbar = () => {
                   className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors duration-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Favorites ({getFavoritesCount()})
+                  Favorites ({favoritesCount})
                 </Link>
                 <Link 
                   to="/cart" 
