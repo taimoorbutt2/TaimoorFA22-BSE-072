@@ -1,6 +1,4 @@
-
-
-## 🛍️ ArtisanMart - Multi-Vendor Marketplace
+# ArtisanMart - Multi-Vendor Marketplace
 
 A full-stack MERN (MongoDB, Express.js, React, Node.js) web application that enables multiple vendors (artisans) to create profiles, list unique products, and sell to customers through a seamless, responsive platform.
 
@@ -253,37 +251,4 @@ For support and questions:
 
 ---
 
-## 📸 Screenshots
-Below is a showcase of ArtisanMart’s responsive UI, highlighting key features across desktop and mobile views. Screenshots are organized to demonstrate the platform’s functionality, including product browsing, vendor management, checkout, and admin capabilities.
-
-| **Feature**            | **Desktop View**                                                                 | **Mobile View**                                                                 |
-|------------------------|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| **Home Page**          | [Home Desktop](https://github.com/user-attachments/assets/d7bf6ece-5d0b-452c-a292-35a45eeb215b) | [Home Mobile](https://github.com/user-attachments/assets/7318c616-1c2c-4301-8813-b260c9010a5d) |
-| **Product Page**       | [Product Desktop](https://github.com/user-attachments/assets/53e0a2b0-5a4a-4770-b674-a8b50b250698) | [Product Mobile](https://github.com/user-attachments/assets/462a57cf-2c15-43f6-a725-db50e3f0e8d5) |
-| **Vendor Dashboard**   | [Vendor Desktop](https://github.com/user-attachments/assets/58c78348-5342-488c-ad54-a98d6e3f7989) | [Vendor Mobile](https://github.com/user-attachments/assets/11a6519c-c625-425a-89e0-12a6816c5d22) |
-| **Checkout**           | [Checkout Desktop](https://github.com/user-attachments/assets/9b0fb235-06d7-4644-a3ca-bf2171012115) | [Checkout Mobile](https://github.com/user-attachments/assets/dc7c0599-62c9-40bd-a659-a03cb9623ad8) |
-| **Admin Dashboard**    | [Admin Desktop](https://github.com/user-attachments/assets/75a8005b-b461-4644-9a4d-c91aed7a448f) | [Admin Mobile](https://github.com/user-attachments/assets/2cf48263-f01a-4d3e-becf-5e745ed896b0) |
-| **Additional Views**   | [Profile Desktop](https://github.com/user-attachments/assets/e8366ca1-2cb6-47f5-aee5-9ba828318ff5) | [Cart Mobile](https://github.com/user-attachments/assets/118d21e2-3aa3-4a5b-aafc-c54c706c994d) |
-
----
-❤️ video Link for better uderstanding:
-https://drive.google.com/file/d/1XiaopknjipUGSjL62udqQ8GLqRoto4aX/view?usp=drive_link
-
 **Built with ❤️ using the MERN stack**
-
----
-
-### Notes for Screenshot Layout
-- **Structure**: The table organizes 10 of the 12 provided screenshots into five key features (Home, Product, Vendor Dashboard, Checkout, Admin Dashboard) with desktop and mobile views. The remaining two screenshots are included under “Additional Views” (Profile Desktop and Cart Mobile) to cover other UI aspects.
-- **Image Selection**: Screenshots were paired based on their dimensions and content to represent desktop (wider, e.g., 1028-1326px) and mobile (narrower, e.g., 558-871px) views:
-  - Home: `alt="1"` (desktop), `alt="10"` (mobile)
-  - Product: `alt="2"` (desktop), `alt="9"` (mobile)
-  - Vendor Dashboard: `alt="3"` (desktop), `alt="5"` (mobile)
-  - Checkout: `alt="4"` (desktop), `alt="7"` (mobile)
-  - Admin Dashboard: `alt="11"` (desktop), `alt="8"` (mobile)
-  - Additional Views: `alt="12"` (Profile Desktop), `alt="13"` (Cart Mobile)
-- **Image URLs**: Used the provided GitHub URLs directly. Ensure these are publicly accessible in your repository’s `screenshots/` folder (e.g., `https://github.com/your-username/artisanmart/raw/main/screenshots/`). Replace `user-attachments` with your actual GitHub username or repository path.
-- **Optimization**: Verify that images are optimized (<500KB each, PNG/JPEG) to ensure fast loading on GitHub. Rename files for clarity (e.g., `home-desktop.png`, `product-mobile.png`) if needed.
-- **GitHub Compatibility**: The table is Markdown-friendly, rendering cleanly on GitHub. Desktop images are wider to reflect full-page views, while mobile images are narrower to showcase responsiveness.
-- **Responsiveness**: The layout emphasizes ArtisanMart’s mobile-first design with Tailwind CSS, aligning with your FoodieHub-inspired UI expertise.
-
