@@ -23,55 +23,66 @@ const Home = () => {
          return location.address || 'Location not specified'
        }
 
-  // Sample products that will always be shown
-  const sampleProducts = [
-    {
-      _id: 'demo1',
-      name: 'Handcrafted Silver Necklace',
-      price: 89.99,
-      rating: 4.8,
-      reviewCount: 24,
-      vendorName: 'SilverCraft Studio',
-      image: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400&h=300&fit=crop'
-    },
-    {
-      _id: 'demo2',
-      name: 'Ceramic Vase Collection',
-      price: 45.50,
-      rating: 4.6,
-      reviewCount: 18,
-      vendorName: 'Earth & Fire Pottery',
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop'
-    },
-    {
-      _id: 'demo3',
-      name: 'Handwoven Cotton Scarf',
-      price: 32.00,
-      rating: 4.9,
-      reviewCount: 31,
-      vendorName: 'Textile Traditions',
-      image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&h=300&fit=crop'
-    },
-    {
-      _id: 'demo4',
-      name: 'Wooden Wall Art',
-      price: 125.00,
-      rating: 4.7,
-      reviewCount: 15,
-      vendorName: 'Timber Creations',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop'
+  // Fetch featured products from API
+  const fetchFeaturedProducts = async () => {
+    try {
+      setLoading(true)
+      console.log('Fetching featured products...')
+      const response = await fetch('/api/products/featured')
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Featured products API response:', data)
+        if (data.success && data.products && data.products.length > 0) {
+          setFeaturedProducts(data.products)
+          setApiError(false)
+          console.log('Featured products loaded:', data.products.length)
+        } else {
+          console.log('No featured products found, fetching recent products...')
+          // If no featured products, show some recent products instead
+          const recentResponse = await fetch('/api/products?limit=8&sort=createdAt')
+          if (recentResponse.ok) {
+            const recentData = await recentResponse.json()
+            console.log('Recent products API response:', recentData)
+            if (recentData.success && recentData.products && recentData.products.length > 0) {
+              setFeaturedProducts(recentData.products)
+              setApiError(false)
+              console.log('Recent products loaded:', recentData.products.length)
+            } else {
+              setApiError(true)
+              console.log('No recent products found')
+            }
+          } else {
+            setApiError(true)
+            console.log('Recent products API failed')
+          }
+        }
+      } else {
+        console.log('Featured products API failed, trying recent products...')
+        // Fallback to recent products if featured endpoint fails
+        const recentResponse = await fetch('/api/products?limit=8&sort=createdAt')
+        if (recentResponse.ok) {
+          const recentData = await recentResponse.json()
+          if (recentData.success && recentData.products && recentData.products.length > 0) {
+            setFeaturedProducts(recentData.products)
+            setApiError(false)
+          } else {
+            setApiError(true)
+          }
+        } else {
+          setApiError(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching featured products:', error)
+      setApiError(true)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
   useEffect(() => {
-    // Simulate loading and then show sample products
-    const timer = setTimeout(() => {
-      setFeaturedProducts(sampleProducts)
-      setLoading(false)
-      setApiError(true) // Show that we're using demo data
-    }, 1000)
-
-    return () => clearTimeout(timer)
+    // Fetch real featured products from API
+    fetchFeaturedProducts()
   }, [])
 
   // Fetch featured vendors
@@ -312,14 +323,14 @@ const Home = () => {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product, index) => (
                 <div key={product._id} className="group relative bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-2xl hover:shadow-blue-100/50 transition-all duration-700 transform hover:scale-105 hover:-translate-y-2">
                   {/* Product Image Container */}
                   <div className="relative overflow-hidden">
                     <img
-                      src={product.image}
+                      src={product.images && product.images.length > 0 ? product.images[0] : 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'}
                       alt={product.name}
                       className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-700"
                       onError={(e) => {
@@ -358,7 +369,7 @@ const Home = () => {
                     
                     {/* Category badge */}
                     <div className="absolute bottom-4 left-4 px-3 py-1 bg-gradient-to-r from-blue-500/90 to-purple-500/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full shadow-lg">
-                      Featured
+                      {product.isFeatured ? 'Featured' : product.category || 'Product'}
                     </div>
                   </div>
                   
@@ -396,7 +407,7 @@ const Home = () => {
                           <span className="text-white text-xs font-bold">A</span>
                         </div>
                         <span className="text-sm text-gray-600 font-medium group-hover:text-gray-800 transition-colors duration-300">
-                          by {product.vendorName}
+                          by {product.vendorName || 'Artisan'}
                         </span>
                       </div>
                       <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300">
@@ -475,6 +486,23 @@ const Home = () => {
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Featured Products Yet</h3>
+              <p className="text-gray-500 mb-6">We're working on featuring some amazing products for you!</p>
+              <Link
+                to="/products"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
+                Browse All Products
+                <FiArrowRight className="ml-2 -mr-1 h-4 w-4" />
+              </Link>
             </div>
           )}
           

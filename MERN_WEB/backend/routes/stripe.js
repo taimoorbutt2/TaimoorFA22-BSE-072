@@ -1,11 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-const auth = require('../middleware/auth')
+const { auth } = require('../middleware/auth')
 const Order = require('../models/Order')
 
 // Create payment intent
-router.post('/create-payment-intent', async (req, res) => {
+router.post('/create-payment-intent', auth, async (req, res) => {
   try {
     const { amount, currency = 'usd', metadata = {} } = req.body
 
@@ -38,7 +38,7 @@ router.post('/create-payment-intent', async (req, res) => {
 })
 
 // Create order and process payment
-router.post('/create-order', async (req, res) => {
+router.post('/create-order', auth, async (req, res) => {
   try {
     const {
       items,
@@ -147,7 +147,7 @@ router.post('/create-order', async (req, res) => {
 })
 
 // Get payment methods for customer
-router.get('/payment-methods', async (req, res) => {
+router.get('/payment-methods', auth, async (req, res) => {
   try {
     // Check if customer exists in Stripe
     let customer
@@ -245,7 +245,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 })
 
 // Get order by payment intent
-router.get('/order/:paymentIntentId', async (req, res) => {
+router.get('/order/:paymentIntentId', auth, async (req, res) => {
   try {
     const order = await Order.findOne({
       paymentIntentId: req.params.paymentIntentId,
