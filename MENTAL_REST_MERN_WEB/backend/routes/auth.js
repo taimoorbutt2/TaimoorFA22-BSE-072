@@ -4,6 +4,7 @@ const passport = require('passport');
 const User = require('../models/User');
 const { authenticateToken } = require('../middleware/auth');
 const { validateUserRegistration, validateUserLogin } = require('../middleware/validation');
+const emailService = require('../services/emailService');
 
 const router = express.Router();
 
@@ -40,6 +41,12 @@ router.post('/register', validateUserRegistration, async (req, res) => {
     });
 
     await user.save();
+
+    // Send welcome email
+    const emailSent = await emailService.sendWelcomeEmail(user.email, user.name);
+    if (!emailSent) {
+      console.error('Failed to send welcome email to:', user.email);
+    }
 
     // Generate token
     const token = generateToken(user._id);
@@ -270,6 +277,120 @@ router.get('/verify-token', authenticateToken, (req, res) => {
       role: req.user.role
     }
   });
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send password reset email
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: 'Email is required',
+        code: 'EMAIL_REQUIRED'
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      // For security, don't reveal if email exists or not
+      return res.json({
+        message: 'If an account with that email exists, a password reset link has been sent.'
+      });
+    }
+
+    // Check if account is active
+    if (!user.isActive) {
+      return res.status(400).json({
+        message: 'Account is deactivated',
+        code: 'ACCOUNT_DEACTIVATED'
+      });
+    }
+
+    // Generate reset token
+    const resetToken = user.generatePasswordResetToken();
+    await user.save();
+
+    // Send password reset email
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    
+    const emailSent = await emailService.sendPasswordResetEmail(user.email, resetUrl);
+    
+    if (!emailSent) {
+      console.error('Failed to send password reset email to:', user.email);
+      // Don't fail the request, but log the error
+    }
+
+    res.json({
+      message: 'If an account with that email exists, a password reset link has been sent.',
+      // Remove this in production - only for development
+      resetUrl: process.env.NODE_ENV === 'development' ? resetUrl : undefined
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      message: 'Failed to process password reset request',
+      code: 'FORGOT_PASSWORD_ERROR'
+    });
+  }
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password with token
+// @access  Public
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        message: 'Token and password are required',
+        code: 'MISSING_FIELDS'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: 'Password must be at least 6 characters long',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    // Hash the token to compare with stored hash
+    const crypto = require('crypto');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // Update password and clear reset token
+    user.password = password;
+    user.clearPasswordResetToken();
+    await user.save();
+
+    res.json({
+      message: 'Password reset successfully. You can now log in with your new password.'
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      message: 'Failed to reset password',
+      code: 'RESET_PASSWORD_ERROR'
+    });
+  }
 });
 
 // Google OAuth routes (to be implemented)
